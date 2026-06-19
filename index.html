@@ -1164,7 +1164,8 @@ auth.onAuthStateChanged(async(user)=>{
     const saved=await loadFromFirestore(user.uid);
     deletedModelsSet=new Set(saved?.deletedModels||[]);
     ({state, deadlines}=loadState(saved));
-
+refreshModelsList();
+    if (!activeTab && models.length > 0) activeTab = models[0];
     document.querySelector('.wrap').classList.add('unlocked');
     document.getElementById('lastUpdated').textContent='Loaded '+new Date().toLocaleTimeString();
     renderAll();
