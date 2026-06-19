@@ -2133,20 +2133,26 @@ document.getElementById('deleteModelBtn').onclick=()=>{
 
 // ── KEYBOARD SHORTCUTS ────────────────────────────────────────────────────────
 document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){
+    document.getElementById('searchBox').value='';
+    searchQuery='';
+    selectedTasks.clear();
+    updateBulkBar();
+    renderTaskList();
+    document.getElementById('notesModal').classList.remove('open');
+    document.getElementById('deadlineModal').classList.remove('open');
+    document.getElementById('exportModal').classList.remove('open');
+    if (document.activeElement) document.activeElement.blur();
+    return;
+  }
+
   if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')return;
+  
   if(e.key==='n'||e.key==='N'){
     e.preventDefault(); document.getElementById('newTaskInput').focus();
   }
   if(e.key==='/'){
     e.preventDefault(); document.getElementById('searchBox').focus();
-  }
-  if(e.key==='Escape'){
-    document.getElementById('searchBox').value='';
-    searchQuery='';renderTaskList();
-    selectedTasks.clear();updateBulkBar();renderTaskList();
-    document.getElementById('notesModal').classList.remove('open');
-    document.getElementById('deadlineModal').classList.remove('open');
-    document.getElementById('exportModal').classList.remove('open');
   }
 });
 
@@ -2215,6 +2221,16 @@ window.addEventListener('resize',refreshStickyBarOrigin);
 captureStickyBarOrigin();
 updateStickyBarPin();
 
+</script>
+
+<script>
+  window.addEventListener('load', () => {
+    // Force show dashboard, hide any 'connecting' or 'loader' elements
+    const dashboard = document.querySelector('#dashboard-content') || document.body;
+    const loader = document.querySelector('#loader') || document.querySelector('.loader');
+    if (dashboard) dashboard.style.display = 'block';
+    if (loader) loader.style.display = 'none';
+  });
 </script>
 </body>
 </html>
