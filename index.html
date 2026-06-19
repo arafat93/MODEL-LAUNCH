@@ -722,6 +722,12 @@ kbd {
       <input type="password" class="auth-input" id="loginPassword" placeholder="Password" autocomplete="current-password">
       <div class="auth-error" id="loginError"></div>
       <button class="auth-submit" id="loginBtn">Sign In</button>
+      
+      <div class="auth-divider">OR</div>
+      <button class="auth-submit" id="googleBtn" style="background: var(--surface2); color: var(--text); border: 1px solid var(--border);">
+        Sign in with Google
+      </button>
+
       <div class="auth-footer"><a id="forgotLink">Forgot password?</a></div>
     </div>
     <!-- Register panel -->
@@ -979,15 +985,13 @@ kbd {
 
 <script>
 // ── FIREBASE CONFIG ───────────────────────────────────────────────────────────
-// ⚠️  REPLACE the values below with YOUR Firebase project's config.
-// Get them from: Firebase Console → Project Settings → Your Apps → SDK setup
 const firebaseConfig = {
-  apiKey:            "YOUR_API_KEY",
-  authDomain:        "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId:         "YOUR_PROJECT_ID",
-  storageBucket:     "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId:             "YOUR_APP_ID"
+  apiKey: "AIzaSyD3acOjOQlm4znaJWjiKw1UWoorsfoSjOw",
+  authDomain: "product-launch-cd58a.firebaseapp.com",
+  projectId: "product-launch-cd58a",
+  storageBucket: "product-launch-cd58a.firebasestorage.app",
+  messagingSenderId: "323149984155",
+  appId: "1:323149984155:web:f38464a174b16d77ee713e"
 };
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
@@ -1035,7 +1039,25 @@ async function doLogin(){
 document.getElementById('loginBtn').onclick=doLogin;
 document.getElementById('loginPassword').onkeydown=e=>{if(e.key==='Enter')doLogin();};
 document.getElementById('loginEmail').onkeydown=e=>{if(e.key==='Enter')doLogin();};
-
+// Google Sign In
+document.getElementById('googleBtn').onclick = async () => {
+  const provider = new firebase.auth.GoogleAuthProvider();
+  const errEl = document.getElementById('loginError');
+  errEl.textContent = '';
+  
+  try {
+    await auth.signInWithPopup(provider);
+    // You do not need to write extra redirect logic here! 
+    // Your existing auth.onAuthStateChanged listener will automatically 
+    // detect the login, hide the gate, and load the dashboard.
+  } catch (e) {
+    if (e.code === 'auth/popup-closed-by-user') {
+        errEl.textContent = 'Google sign-in was cancelled.';
+    } else {
+        errEl.textContent = friendlyAuthError(e.code);
+    }
+  }
+};
 // Register
 async function doRegister(){
   const email=document.getElementById('regEmail').value.trim();
