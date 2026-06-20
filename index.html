@@ -8,6 +8,15 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+<!-- Preload the Firebase SDK + config so the browser starts downloading them
+     immediately (in parallel) instead of waiting until the parser reaches
+     these script elements near the bottom of the page. This is what
+     actually cuts the "Connecting…" delay — the scripts still execute in
+     the same order, just further along in the download queue already. -->
+<link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js">
+<link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js">
+<link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js">
+<link rel="preload" as="script" href="config.js">
 <style>
 /* ── THEME VARIABLES ── */
 :root {
@@ -995,20 +1004,17 @@ kbd {
 </div>
 
 <!-- Loaded here (end of body) instead of <head> so the page renders immediately
-     without waiting on these network round-trips first. -->
+     without waiting on these network round-trips first. The preload hints
+     above (in <head>) let the browser fetch all four of these in parallel
+     instead of one-by-one, while execution still happens in document order. -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<!-- config.js defines firebaseConfig and is gitignored (not committed). Copy
+     config.example.js to config.js and fill in your project's values. -->
+<script src="config.js"></script>
 <script>
-// ── FIREBASE CONFIG ───────────────────────────────────────────────────────────
-const firebaseConfig = {
-  apiKey: "AIzaSyD3acOjOQlm4znaJWjiKw1UWoorsfoSjOw",
-  authDomain: "product-launch-cd58a.firebaseapp.com",
-  projectId: "product-launch-cd58a",
-  storageBucket: "product-launch-cd58a.firebasestorage.app",
-  messagingSenderId: "323149984155",
-  appId: "1:323149984155:web:f38464a174b16d77ee713e"
-};
+// ── FIREBASE INIT ──────────────────────────────────────────────────────────────
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db   = firebase.firestore();
@@ -1169,7 +1175,7 @@ async function loadFromFirestore(uid){
     // No cache available yet (e.g. first-ever login on this device) — fall through to network.
   }
   try{
-    const snap=await withTimeout(ref.get(),6000);
+    const snap=await withTimeout(ref.get(),5000);
     return snap.exists ? snap.data() : null;
   }catch(e){
     console.error('Load error:',e);
@@ -2221,16 +2227,6 @@ window.addEventListener('resize',refreshStickyBarOrigin);
 captureStickyBarOrigin();
 updateStickyBarPin();
 
-</script>
-
-<script>
-  window.addEventListener('load', () => {
-    // Force show dashboard, hide any 'connecting' or 'loader' elements
-    const dashboard = document.querySelector('#dashboard-content') || document.body;
-    const loader = document.querySelector('#loader') || document.querySelector('.loader');
-    if (dashboard) dashboard.style.display = 'block';
-    if (loader) loader.style.display = 'none';
-  });
 </script>
 </body>
 </html>
