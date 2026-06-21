@@ -264,12 +264,6 @@ h1 span { color: var(--accent1); font-weight: 400; }
 .stat-num.pend-val { color: var(--red); }
 .stat-num.pct-val { color: var(--text); }
 
-/* mini bar chart */
-.chart-wrap { display: flex; align-items: flex-end; gap: 4px; height: 32px; margin-top: 10px; opacity: 0.8; }
-.chart-bar { flex: 1; width: 4px; border-radius: 4px; background: var(--surface2); transition: height 0.8s ease, background 0.3s; min-height: 4px; }
-.chart-bar.filled { background: var(--accent1); opacity: 0.6; }
-.model-card.theme-1 .chart-bar.filled { background: var(--accent2); }
-
 /* ── SECTION LABEL ── */
 .section-label {
   font-size: 16px; font-weight: 600; color: var(--text);
@@ -662,19 +656,6 @@ h1 span { color: var(--accent1); font-weight: 400; }
 }
 .deadline-input:focus { border-color: var(--accent1); box-shadow: 0 0 0 3px var(--accent1-dim); }
 
-/* ── EXPORT MODAL ── */
-.export-options { display: flex; flex-direction: column; gap: 12px; margin-top: 8px; }
-.export-opt {
-  display: flex; align-items: center; gap: 18px;
-  padding: 16px 20px; border-radius: 14px;
-  border: 1px solid var(--border); background: var(--surface2);
-  cursor: pointer; transition: all 0.3s ease;
-}
-.export-opt:hover { border-color: var(--accent1); background: var(--surface3); transform: translateY(-2px); box-shadow: var(--shadow-sm); }
-.export-icon { font-size: 24px; opacity: 0.9; }
-.export-info strong { font-size: 15px; font-weight: 600; color: var(--text); display: block; margin-bottom: 4px; }
-.export-info span { font-size: 12px; color: var(--text-muted); font-weight: 300; }
-
 /* ── TOAST ── */
 .toast {
   position: fixed; bottom: 32px; right: 32px;
@@ -815,8 +796,8 @@ kbd {
     <button class="hdr-btn accent" id="loginOpenBtn">✦ <span>Login</span></button>
     <button class="hdr-btn" id="undoBtn" title="Undo last change" style="display:none;">↺ <span>Undo</span></button>
     <button class="hdr-btn" id="themeToggleBtn" title="Toggle dark/light mode">✧ <span>Theme</span></button>
-    <button class="hdr-btn accent" id="exportBtn" title="Export data">↓ <span>Export</span></button>
-    <label class="hdr-btn accent" title="Import from Excel (.xlsx, .xls)" style="cursor:pointer;">
+    <button class="hdr-btn accent" id="exportBtn" title="Export all models to Excel (.xlsx)">↓ <span>Export</span></button>
+    <label class="hdr-btn accent" title="Import from Excel — adds new models/tasks, keeps existing data" style="cursor:pointer;">
       ↑ <span>Import</span>
       <input type="file" id="importFile" accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" style="display:none;">
     </label>
@@ -1013,29 +994,9 @@ kbd {
 </div>
 
 <!-- EXPORT MODAL -->
-<div class="modal-overlay" id="exportModal">
-  <div class="modal-box">
-    <div class="modal-title">Export Database</div>
-    <div class="modal-subtitle">Download your tracking data in various formats.</div>
-    <div class="export-options">
-      <div class="export-opt" id="exportJSON">
-        <div class="export-icon">📦</div>
-        <div class="export-info"><strong>JSON Payload</strong><span>Complete structural backup including states & metadata</span></div>
-      </div>
-      <div class="export-opt" id="exportCSV">
-        <div class="export-icon">📊</div>
-        <div class="export-info"><strong>CSV Spreadsheet</strong><span>Tabular format optimized for Excel or Google Sheets</span></div>
-      </div>
-      <div class="export-opt" id="exportTXT">
-        <div class="export-icon">📄</div>
-        <div class="export-info"><strong>Plain Text Report</strong><span>Clean, human-readable summary of all model statuses</span></div>
-      </div>
-    </div>
-    <div class="modal-actions" style="margin-top:24px;">
-      <button class="modal-btn secondary" id="exportCancelBtn">Close</button>
-    </div>
-  </div>
-</div>
+<!-- Export modal removed: header Export button now downloads an all-models
+     Excel workbook directly (one sheet per model), matching the Excel
+     import format. See exportBtn handler below. -->
 
 <!-- Loaded here (end of body) instead of <head> so the page renders immediately
      without waiting on these network round-trips first. -->
@@ -1626,13 +1587,6 @@ function renderModelCards(){
     const[lbl]=statusLabel(s.pct);
     const card=document.createElement('div');
     card.className='model-card theme-'+(idx%4);
-    const tasks=state[m];
-    const groups=[];
-    for(let i=0;i<tasks.length;i+=9){
-      const chunk=tasks.slice(i,i+9);
-      groups.push(Math.round(chunk.filter(t=>t.done).length/chunk.length*100));
-    }
-    const bars=groups.map(p=>`<div class="chart-bar ${p>0?'filled':''}" style="height:${Math.max(4,p*0.32)}px" title="${p}%"></div>`).join('');
     const dl=deadlineLabel(m);
     const dlHtml=dl?`<div class="model-deadline ${dl.cls}">${CAL_ICON} ${dl.text}</div>`
       :`<div class="model-deadline">${CAL_ICON} No deadline set</div>`;
@@ -1652,8 +1606,7 @@ function renderModelCards(){
         <div class="stat-item"><div class="stat-num done-val">${s.done}</div><div class="stat-lbl">DONE</div></div>
         <div class="stat-item"><div class="stat-num pend-val">${s.pending}</div><div class="stat-lbl">PENDING</div></div>
         <div class="stat-item"><div class="stat-num" style="color:var(--text-muted)">${s.total}</div><div class="stat-lbl">TOTAL</div></div>
-      </div>
-      <div class="chart-wrap">${bars}</div>`;
+      </div>`;
     card.onclick=()=>{activeTab=m;editingIdx=null;selectedTasks.clear();renderAll();};
     grid.appendChild(card);
     setTimeout(()=>{card.querySelector('.progress-bar-fill').style.width=s.pct+'%';},100+idx*80);
@@ -2077,49 +2030,39 @@ document.getElementById('selectAllChk').onchange=e=>{
 };
 
 // ── EXPORT / IMPORT ───────────────────────────────────────────────────────────
-function dlFile(content,filename,type){
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(new Blob([content],{type}));
-  a.download=filename;a.click();
+// ── EXCEL EXPORT (all models — header button) ────────────────────────────────
+// One sheet per model, same column layout as the Excel import expects:
+// Name, Priority, Status, Notes, Deadline. This is the single, only export
+// format offered from the header — re-importing this file via the header
+// Import button reconstructs the dashboard (deadlines are kept only for
+// models whose name matches a sheet name; everything else, including
+// deletedModelsSet, is reset — same as any other header import).
+function excelSafeSheetName(name){
+  // Excel sheet names: max 31 chars, no \ / ? * [ ] : characters
+  return name.replace(/[\\/?*\[\]:]/g,' ').slice(0,31).trim()||'Model';
 }
-document.getElementById('exportBtn').onclick=()=>document.getElementById('exportModal').classList.add('open');
-document.getElementById('exportCancelBtn').onclick=()=>document.getElementById('exportModal').classList.remove('open');
-document.getElementById('exportModal').onclick=e=>{if(e.target===document.getElementById('exportModal'))document.getElementById('exportModal').classList.remove('open');};
-
-document.getElementById('exportJSON').onclick=()=>{
-  dlFile(JSON.stringify({tasks:state,deadlines},null,2),'model_launch_data.json','application/json');
-  document.getElementById('exportModal').classList.remove('open');toast('📦','JSON exported',false);
-};
-document.getElementById('exportCSV').onclick=()=>{
-  const rows=['Model,SN,Task,Priority,Status,Notes'];
+document.getElementById('exportBtn').onclick=async()=>{
+  if(!models.length){alert('Nothing to export yet.');return;}
+  try{ await loadXLSX(); }catch(e){ alert('Could not load the Excel library. Check your connection and try again.'); return; }
+  const prioMap={high:'High',med:'Med',low:'Low'};
+  const wb=XLSX.utils.book_new();
+  const usedNames=new Set();
   models.forEach(m=>{
-    state[m].forEach(t=>{
-      const note=(t.notes||'').replace(/"/g,'""');
-      rows.push(`"${m}",${t.sn},"${t.name}",${t.priority||'med'},${t.done?'Done':'Pending'},"${note}"`);
+    const tasks=state[m];
+    const rows=[['Task Name','Priority','Status','Notes','Deadline']];
+    tasks.forEach(t=>{
+      rows.push([t.name,prioMap[t.priority||'med'],t.done?'Done':'Pending',t.notes||'',t.taskDeadline||'']);
     });
+    const ws=XLSX.utils.aoa_to_sheet(rows);
+    ws['!cols']=[{wch:40},{wch:10},{wch:10},{wch:35},{wch:14}];
+    // Guard against two model names colliding once sanitized/truncated to 31 chars
+    let sheetName=excelSafeSheetName(m), n=2;
+    while(usedNames.has(sheetName)){ sheetName=excelSafeSheetName(m).slice(0,28)+'_'+n; n++; }
+    usedNames.add(sheetName);
+    XLSX.utils.book_append_sheet(wb,ws,sheetName);
   });
-  dlFile(rows.join('\n'),'model_launch_data.csv','text/csv');
-  document.getElementById('exportModal').classList.remove('open');toast('📊','CSV exported',false);
-};
-document.getElementById('exportTXT').onclick=()=>{
-  let out='MODEL LAUNCH DASHBOARD — REPORT\n';
-  out+='Generated: '+new Date().toLocaleString()+'\n';
-  out+='='.repeat(60)+'\n\n';
-  models.forEach(m=>{
-    const s=stats(m);
-    const dl=deadlines[m]?` | Deadline: ${deadlines[m]}`:'';
-    out+=`MODEL: ${m}${dl}\n`;
-    out+=`Progress: ${s.done}/${s.total} (${s.pct}%)\n`;
-    out+='-'.repeat(50)+'\n';
-    state[m].forEach(t=>{
-      out+=`[${t.done?'✓':' '}] ${String(t.sn).padStart(2,'0')}. ${t.name} [${(t.priority||'med').toUpperCase()}]`;
-      if(t.notes)out+=`\n      Note: ${t.notes}`;
-      out+='\n';
-    });
-    out+='\n';
-  });
-  dlFile(out,'model_launch_report.txt','text/plain');
-  document.getElementById('exportModal').classList.remove('open');toast('📄','Text report exported',false);
+  XLSX.writeFile(wb,'model_launch_dashboard.xlsx');
+  toast('📤',`Exported ${models.length} model${models.length===1?'':'s'} to Excel`,false);
 };
 
 document.getElementById('importFile').onchange=async e=>{
@@ -2138,36 +2081,65 @@ document.getElementById('importFile').onchange=async e=>{
         return rows.length>0;
       });
       if(!sheetNames.length){alert('The workbook appears to be empty.');e.target.value='';return;}
-      const newState={};
-      const newDeadlines={};
+
+      // Merge into the existing dashboard rather than replacing it:
+      // - a sheet whose name matches an existing model appends only its
+      //   new (non-duplicate) tasks to that model — existing tasks, notes,
+      //   completion status, and the model's deadline are left untouched.
+      // - a sheet with a name that doesn't match any model becomes a new
+      //   model (and is un-deleted if it was a previously-removed built-in).
+      let modelsAdded=0, modelsUpdated=0, tasksAdded=0, tasksSkipped=0;
       sheetNames.forEach(sheetName=>{
         const ws=wb.Sheets[sheetName];
         const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
         let startIdx=0;
         const firstRow=(rows[0]||[]).map(c=>String(c).trim().toLowerCase());
         if(firstRow[0]&&(firstRow[0].includes('task')||firstRow[0].includes('name'))) startIdx=1;
-        const tasks=[];
+
+        const isExistingModel=Object.prototype.hasOwnProperty.call(state,sheetName);
+        const targetTasks=isExistingModel?state[sheetName]:[];
+        const existingNames=new Set(targetTasks.map(t=>t.name.trim().toUpperCase()));
+        let addedHere=0;
+
         for(let i=startIdx;i<rows.length;i++){
           const row=rows[i];
           const name=String(row[0]||'').trim();
           if(!name) continue;
-          tasks.push({
-            sn:tasks.length+1,
-            name:name.toUpperCase(),
+          const key=name.toUpperCase();
+          if(existingNames.has(key)){tasksSkipped++;continue;}
+          existingNames.add(key);
+          targetTasks.push({
+            sn:targetTasks.length+1,
+            name:key,
             done:normDone(row[2]),
             priority:normPriority(row[1]),
             notes:String(row[3]||'').trim(),
             taskDeadline:normDate(row[4])
           });
+          addedHere++;
         }
-        if(tasks.length) newState[sheetName]=tasks;
+        if(!addedHere && !isExistingModel) return; // empty new sheet — nothing to add
+
+        if(isExistingModel){
+          if(addedHere){ renumber(targetTasks); modelsUpdated++; tasksAdded+=addedHere; }
+        } else if(targetTasks.length){
+          state[sheetName]=targetTasks;
+          deletedModelsSet.delete(sheetName);
+          modelsAdded++; tasksAdded+=addedHere;
+        }
       });
-      if(!Object.keys(newState).length){alert('No tasks found in the workbook.');e.target.value='';return;}
-      Object.keys(newState).forEach(m=>{ if(deadlines[m]) newDeadlines[m]=deadlines[m]; });
-      state=newState;deadlines=newDeadlines;deletedModelsSet=new Set();
-      refreshModelsList();activeTab=models[0];
+
+      if(!modelsAdded && !modelsUpdated){alert('No new models or tasks found to import — everything in the workbook already exists.');e.target.value='';return;}
+
+      refreshModelsList();
+      if(!activeTab && models.length) activeTab=models[0];
       save();renderAll();
-      toast('↑',`Imported ${models.length} model${models.length===1?'':'s'} from Excel`);
+      const parts=[];
+      if(modelsAdded) parts.push(`${modelsAdded} new model${modelsAdded===1?'':'s'}`);
+      if(modelsUpdated) parts.push(`${modelsUpdated} model${modelsUpdated===1?'':'s'} updated`);
+      if(tasksAdded) parts.push(`${tasksAdded} task${tasksAdded===1?'':'s'} added`);
+      if(tasksSkipped) parts.push(`${tasksSkipped} duplicate${tasksSkipped===1?'':'s'} skipped`);
+      toast('↑',`Imported: ${parts.join(', ')}`);
     }catch(err){alert('Could not parse Excel file. Make sure it\'s a valid .xlsx or .xls workbook.');}
   };
   reader.readAsArrayBuffer(file);
@@ -2337,7 +2309,6 @@ document.addEventListener('keydown',e=>{
     renderTaskList();
     document.getElementById('notesModal').classList.remove('open');
     document.getElementById('deadlineModal').classList.remove('open');
-    document.getElementById('exportModal').classList.remove('open');
     document.getElementById('userBadge').classList.remove('menu-open');
     hideAuthGate();
     if (document.activeElement) document.activeElement.blur();
