@@ -138,7 +138,7 @@ header {
   gap: 16px; flex-wrap: wrap;
 }
 
-.logo-group { display: flex; align-items: center; gap: 18px; min-width: 0; flex: 1 1 auto; }
+.logo-group { display: flex; align-items: center; gap: 18px; min-width: 0; flex: 1 1 auto; max-width: 420px; }
 .logo-group > div:last-child { min-width: 0; }
 .logo-group h1, .logo-group div[style] { overflow: hidden; text-overflow: ellipsis; }
 .logo-icon {
@@ -621,22 +621,38 @@ h1 span { color: var(--accent1); font-weight: 400; }
 #authLoading p { font-size: 14px; color: var(--text-muted); }
 /* User info in header */
 .user-badge {
+  position: relative;
   display: flex; align-items: center; gap: 8px; padding: 6px 12px;
   border-radius: 10px; border: 1px solid var(--border);
   background: var(--surface); font-size: 12px; color: var(--text-muted);
+  cursor: pointer; transition: all 0.2s ease; user-select: none;
 }
+.user-badge:hover { border-color: var(--border-hover); color: var(--text); }
+.user-badge.menu-open { border-color: var(--border-hover); }
+.user-badge-caret { font-size: 9px; opacity: 0.6; transition: transform 0.2s ease; margin-left: -2px; }
+.user-badge.menu-open .user-badge-caret { transform: rotate(180deg); }
 .user-avatar {
   width: 24px; height: 24px; border-radius: 50%;
   background: var(--accent1); color: var(--bg);
   display: flex; align-items: center; justify-content: center;
-  font-size: 11px; font-weight: 700;
+  font-size: 11px; font-weight: 700; flex-shrink: 0;
 }
+.user-menu {
+  position: absolute; top: calc(100% + 8px); right: 0;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; box-shadow: var(--shadow-md);
+  padding: 6px; min-width: 140px; z-index: 50;
+  opacity: 0; visibility: hidden; transform: translateY(-6px);
+  transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s;
+}
+.user-badge.menu-open .user-menu { opacity: 1; visibility: visible; transform: translateY(0); }
 .logout-btn {
-  padding: 6px 12px; border-radius: 10px; border: 1px solid var(--border);
+  display: block; width: 100%; text-align: left;
+  padding: 8px 12px; border-radius: 8px; border: none;
   background: transparent; color: var(--text-muted); font-family: inherit;
-  font-size: 12px; cursor: pointer; transition: all 0.2s;
+  font-size: 12px; cursor: pointer; transition: all 0.15s; white-space: nowrap;
 }
-.logout-btn:hover { border-color: var(--red); color: var(--red); }
+.logout-btn:hover { background: var(--accent1-dim); color: var(--red); }
 
 /* ── DEADLINE MODAL ── */
 .deadline-input {
@@ -671,6 +687,13 @@ h1 span { color: var(--accent1); font-weight: 400; }
 }
 .toast.show { transform: translateY(0); opacity: 1; }
 .toast-icon { font-size: 18px; }
+.toast-undo-btn {
+  margin-left: 8px; padding: 6px 12px; border-radius: 10px;
+  background: var(--surface2); border: 1px solid var(--border);
+  color: var(--accent1); font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: all 0.15s; white-space: nowrap;
+}
+.toast-undo-btn:hover { background: var(--surface3); border-color: var(--border-hover); }
 
 /* ── FOOTER ── */
 .footer-bar {
@@ -784,14 +807,18 @@ kbd {
     <div class="user-badge" id="userBadge" style="display:none;">
       <div class="user-avatar" id="userAvatar">?</div>
       <span id="userEmail" style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+      <span class="user-badge-caret">▾</span>
+      <div class="user-menu" id="userMenu">
+        <button class="logout-btn" id="logoutBtn">Sign Out</button>
+      </div>
     </div>
-    <button class="logout-btn" id="logoutBtn" style="display:none;">Sign Out</button>
     <button class="hdr-btn accent" id="loginOpenBtn">✦ <span>Login</span></button>
+    <button class="hdr-btn" id="undoBtn" title="Undo last change" style="display:none;">↺ <span>Undo</span></button>
     <button class="hdr-btn" id="themeToggleBtn" title="Toggle dark/light mode">✧ <span>Theme</span></button>
     <button class="hdr-btn accent" id="exportBtn" title="Export data">↓ <span>Export</span></button>
-    <label class="hdr-btn accent" title="Import JSON" style="cursor:pointer;">
+    <label class="hdr-btn accent" title="Import from Excel (.xlsx, .xls)" style="cursor:pointer;">
       ↑ <span>Import</span>
-      <input type="file" id="importFile" accept=".json" style="display:none;">
+      <input type="file" id="importFile" accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" style="display:none;">
     </label>
   </div>
 </header>
@@ -848,7 +875,7 @@ kbd {
     <button class="hdr-btn" id="exportExcelBtn" title="Export current model's tasks to Excel">📤 <span>Export Excel</span></button>
     <label class="hdr-btn" id="importExcelLabel" title="Import tasks from Excel into the current model" style="cursor:pointer;">
       📥 <span>Import Excel</span>
-      <input type="file" id="importExcelFile" accept=".xlsx,.xls,.csv" style="display:none;">
+      <input type="file" id="importExcelFile" accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv" style="display:none;">
     </label>
     <button class="row-action-btn delete" id="deleteModelBtn" title="Delete current model" style="width:auto;padding:0 14px;height:36px;font-size:12px;font-weight:600;">Delete Model</button>
     <input class="search-box" type="text" id="searchBox" placeholder="Search tasks…">
@@ -941,6 +968,7 @@ kbd {
 <div class="toast" id="toast">
   <span class="toast-icon" id="toastIcon"></span>
   <span id="toastMsg"></span>
+  <button class="toast-undo-btn" id="toastUndoBtn" style="display:none;">Undo</button>
 </div>
 
 <!-- NOTES MODAL -->
@@ -1041,6 +1069,7 @@ function showLoading(){ document.getElementById('authLoading').classList.remove(
 function hideLoading(){ document.getElementById('authLoading').classList.add('hidden'); }
 
 document.getElementById('loginOpenBtn').onclick=showAuthGate;
+document.getElementById('undoBtn').onclick=()=>undo();
 document.getElementById('authCloseBtn').onclick=hideAuthGate;
 document.getElementById('authGate').addEventListener('click',e=>{
   if(e.target.id==='authGate') hideAuthGate();
@@ -1140,7 +1169,20 @@ document.getElementById('forgotLink').onclick=async()=>{
 };
 
 // Logout
-document.getElementById('logoutBtn').onclick=()=>auth.signOut();
+document.getElementById('logoutBtn').onclick=(e)=>{
+  e.stopPropagation();
+  document.getElementById('userBadge').classList.remove('menu-open');
+  auth.signOut();
+};
+
+// User badge dropdown: click the name/avatar to reveal the Sign Out menu
+document.getElementById('userBadge').addEventListener('click',(e)=>{
+  e.stopPropagation();
+  document.getElementById('userBadge').classList.toggle('menu-open');
+});
+document.addEventListener('click',()=>{
+  document.getElementById('userBadge').classList.remove('menu-open');
+});
 
 // Friendly error messages
 function friendlyAuthError(code){
@@ -1181,7 +1223,7 @@ async function loadFromFirestore(uid){
       // (the next save()/renderAll() cycle will pick up fresh data).
       withTimeout(ref.get({source:'server'}),8000)
         .then(fresh=>{
-          if(fresh.exists) toast('🔄','Synced latest data');
+          if(fresh.exists) toast('🔄','Synced latest data',false);
         })
         .catch(e=>console.warn('Background sync failed:',e));
       return cached.data();
@@ -1194,7 +1236,7 @@ async function loadFromFirestore(uid){
     return snap.exists ? snap.data() : null;
   }catch(e){
     console.error('Load error:',e);
-    toast('⚠','Could not reach the server — showing local defaults');
+    toast('⚠','Could not reach the server — showing local defaults',false);
     return null;
   }
 }
@@ -1223,6 +1265,7 @@ function listenForLastUpdated(uid){
 
 function save(){
   if(!auth.currentUser) return;
+  pushUndoSnapshot();
   clearTimeout(saveTimer);
   saveTimer=setTimeout(async()=>{
     try{
@@ -1234,8 +1277,68 @@ function save(){
       });
       // lastUpdated label is refreshed automatically by the live Firestore
       // listener (listenForLastUpdated) once the server timestamp lands.
-    }catch(e){ console.error('Save error:',e); toast('⚠','Failed to save data');}
+    }catch(e){ console.error('Save error:',e); toast('⚠','Failed to save data',false);}
   },800); // debounce — max one write per 800ms
+}
+
+// ── UNDO ──────────────────────────────────────────────────────────────────────
+// Every save() call snapshots the state as it was *before* the change that
+// triggered it, so each user action becomes one undo step (independent of
+// the 800ms write debounce above). Capped to a small recent history.
+const UNDO_LIMIT=20;
+let undoStack=[];
+let lastSnapshot=null;
+function snapshotNow(){
+  return {
+    state:JSON.parse(JSON.stringify(state)),
+    deadlines:JSON.parse(JSON.stringify(deadlines)),
+    deletedModels:[...deletedModelsSet],
+    activeTab
+  };
+}
+function pushUndoSnapshot(){
+  if(lastSnapshot){
+    undoStack.push(lastSnapshot);
+    if(undoStack.length>UNDO_LIMIT) undoStack.shift();
+  }
+  lastSnapshot=snapshotNow();
+  updateUndoBtn();
+}
+function resetUndo(){
+  undoStack=[];
+  lastSnapshot=snapshotNow();
+  updateUndoBtn();
+}
+function updateUndoBtn(){
+  const btn=document.getElementById('undoBtn');
+  if(btn) btn.style.display=undoStack.length?'':'none';
+}
+function undo(){
+  if(!undoStack.length) return;
+  const prev=undoStack.pop();
+  state=prev.state;
+  deadlines=prev.deadlines;
+  deletedModelsSet=new Set(prev.deletedModels);
+  refreshModelsList();
+  activeTab=models.includes(prev.activeTab)?prev.activeTab:(models[0]||'');
+  selectedTasks.clear();editingIdx=null;
+  // This counts as a change too, but shouldn't itself be undoable back to
+  // a state we just left — re-baseline without pushing a new undo step.
+  lastSnapshot=snapshotNow();
+  updateUndoBtn();
+  if(auth.currentUser){
+    clearTimeout(saveTimer);
+    saveTimer=setTimeout(async()=>{
+      try{
+        await getUserDoc(auth.currentUser.uid).set({
+          tasks:state,deadlines,deletedModels:[...deletedModelsSet],
+          updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+        });
+      }catch(e){ console.error('Save error:',e); toast('⚠','Failed to save data',false);}
+    },800);
+  }
+  renderAll();
+  toast('↺','Undone',false);
 }
 
 let deletedModelsSet=new Set();
@@ -1259,6 +1362,7 @@ function enterPreviewMode(){
   if (!activeTab && models.length > 0) activeTab = models[0];
   document.querySelector('.wrap').classList.add('unlocked');
   document.getElementById('lastUpdated').textContent = '';
+  resetUndo();
   renderAll();
   hideLoading();
   if (typeof refreshStickyBarOrigin === 'function') setTimeout(refreshStickyBarOrigin, 100);
@@ -1275,12 +1379,10 @@ async function handleAuthState(user){
     const avatar=document.getElementById('userAvatar');
     const emailEl=document.getElementById('userEmail');
     const badge=document.getElementById('userBadge');
-    const logoutBtn=document.getElementById('logoutBtn');
     const loginOpenBtn=document.getElementById('loginOpenBtn');
     avatar.textContent=(user.email||'?')[0].toUpperCase();
-    emailEl.textContent=user.email||'';
+    emailEl.textContent=(user.email||'').split('@')[0];
     badge.style.display='flex';
-    logoutBtn.style.display='';
     loginOpenBtn.style.display='none';
 
     // Load user's data from Firestore
@@ -1292,6 +1394,7 @@ refreshModelsList();
     document.querySelector('.wrap').classList.add('unlocked');
     document.getElementById('lastUpdated').textContent=formatLastUpdated(saved&&saved.updatedAt)||'';
     listenForLastUpdated(user.uid);
+    resetUndo();
     renderAll();
     hideLoading();
     if(typeof refreshStickyBarOrigin==='function') setTimeout(refreshStickyBarOrigin,100);
@@ -1300,7 +1403,7 @@ refreshModelsList();
     // instead of locking the dashboard behind a forced gate.
     if(unsubscribeLastUpdated){ unsubscribeLastUpdated(); unsubscribeLastUpdated=null; }
     document.getElementById('userBadge').style.display='none';
-    document.getElementById('logoutBtn').style.display='none';
+    document.getElementById('userBadge').classList.remove('menu-open');
     document.getElementById('loginOpenBtn').style.display='';
     document.getElementById('loginBtn').disabled=false;
     document.getElementById('loginBtn').textContent='Sign In';
@@ -1549,7 +1652,8 @@ function renderModelCards(){
         <div class="stat-item"><div class="stat-num done-val">${s.done}</div><div class="stat-lbl">DONE</div></div>
         <div class="stat-item"><div class="stat-num pend-val">${s.pending}</div><div class="stat-lbl">PENDING</div></div>
         <div class="stat-item"><div class="stat-num" style="color:var(--text-muted)">${s.total}</div><div class="stat-lbl">TOTAL</div></div>
-      </div>`;
+      </div>
+      <div class="chart-wrap">${bars}</div>`;
     card.onclick=()=>{activeTab=m;editingIdx=null;selectedTasks.clear();renderAll();};
     grid.appendChild(card);
     setTimeout(()=>{card.querySelector('.progress-bar-fill').style.width=s.pct+'%';},100+idx*80);
@@ -1984,7 +2088,7 @@ document.getElementById('exportModal').onclick=e=>{if(e.target===document.getEle
 
 document.getElementById('exportJSON').onclick=()=>{
   dlFile(JSON.stringify({tasks:state,deadlines},null,2),'model_launch_data.json','application/json');
-  document.getElementById('exportModal').classList.remove('open');toast('📦','JSON exported');
+  document.getElementById('exportModal').classList.remove('open');toast('📦','JSON exported',false);
 };
 document.getElementById('exportCSV').onclick=()=>{
   const rows=['Model,SN,Task,Priority,Status,Notes'];
@@ -1995,7 +2099,7 @@ document.getElementById('exportCSV').onclick=()=>{
     });
   });
   dlFile(rows.join('\n'),'model_launch_data.csv','text/csv');
-  document.getElementById('exportModal').classList.remove('open');toast('📊','CSV exported');
+  document.getElementById('exportModal').classList.remove('open');toast('📊','CSV exported',false);
 };
 document.getElementById('exportTXT').onclick=()=>{
   let out='MODEL LAUNCH DASHBOARD — REPORT\n';
@@ -2015,23 +2119,58 @@ document.getElementById('exportTXT').onclick=()=>{
     out+='\n';
   });
   dlFile(out,'model_launch_report.txt','text/plain');
-  document.getElementById('exportModal').classList.remove('open');toast('📄','Text report exported');
+  document.getElementById('exportModal').classList.remove('open');toast('📄','Text report exported',false);
 };
 
-document.getElementById('importFile').onchange=e=>{
+document.getElementById('importFile').onchange=async e=>{
   const file=e.target.files[0];if(!file)return;
+  const isExcel=/\.(xlsx|xls)$/i.test(file.name);
+  if(!isExcel){alert('Please choose a valid .xlsx or .xls workbook.');e.target.value='';return;}
+
+  try{ await loadXLSX(); }catch(err){ alert('Could not load the Excel library. Check your connection and try again.'); e.target.value=''; return; }
   const reader=new FileReader();
   reader.onload=ev=>{
     try{
-      const data=JSON.parse(ev.target.result);
-      if(data.tasks){
-        state=data.tasks;deadlines=data.deadlines||{};
-        refreshModelsList();activeTab=models[0];
-        save();renderAll();toast('↑','Data imported successfully');
-      } else {alert('Invalid JSON format.');}
-    }catch{alert('Could not parse JSON file.');}
+      const wb=XLSX.read(ev.target.result,{type:'array',cellDates:true});
+      const sheetNames=wb.SheetNames.filter(n=>{
+        const ws=wb.Sheets[n];
+        const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+        return rows.length>0;
+      });
+      if(!sheetNames.length){alert('The workbook appears to be empty.');e.target.value='';return;}
+      const newState={};
+      const newDeadlines={};
+      sheetNames.forEach(sheetName=>{
+        const ws=wb.Sheets[sheetName];
+        const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+        let startIdx=0;
+        const firstRow=(rows[0]||[]).map(c=>String(c).trim().toLowerCase());
+        if(firstRow[0]&&(firstRow[0].includes('task')||firstRow[0].includes('name'))) startIdx=1;
+        const tasks=[];
+        for(let i=startIdx;i<rows.length;i++){
+          const row=rows[i];
+          const name=String(row[0]||'').trim();
+          if(!name) continue;
+          tasks.push({
+            sn:tasks.length+1,
+            name:name.toUpperCase(),
+            done:normDone(row[2]),
+            priority:normPriority(row[1]),
+            notes:String(row[3]||'').trim(),
+            taskDeadline:normDate(row[4])
+          });
+        }
+        if(tasks.length) newState[sheetName]=tasks;
+      });
+      if(!Object.keys(newState).length){alert('No tasks found in the workbook.');e.target.value='';return;}
+      Object.keys(newState).forEach(m=>{ if(deadlines[m]) newDeadlines[m]=deadlines[m]; });
+      state=newState;deadlines=newDeadlines;deletedModelsSet=new Set();
+      refreshModelsList();activeTab=models[0];
+      save();renderAll();
+      toast('↑',`Imported ${models.length} model${models.length===1?'':'s'} from Excel`);
+    }catch(err){alert('Could not parse Excel file. Make sure it\'s a valid .xlsx or .xls workbook.');}
   };
-  reader.readAsText(file);
+  reader.readAsArrayBuffer(file);
   e.target.value='';
 };
 
@@ -2068,7 +2207,7 @@ document.getElementById('exportExcelBtn').onclick=async()=>{
   XLSX.utils.book_append_sheet(wb,ws,activeTab.slice(0,31));
   const fname=`${activeTab.replace(/[^a-z0-9]+/gi,'_')}_tasks.xlsx`;
   XLSX.writeFile(wb,fname);
-  toast('📤',`Exported ${tasks.length} tasks to Excel`);
+  toast('📤',`Exported ${tasks.length} tasks to Excel`,false);
 };
 
 // ── EXCEL IMPORT (append tasks to current model) ─────────────────────────────
@@ -2184,6 +2323,12 @@ document.getElementById('deleteModelBtn').onclick=()=>{
 
 // ── KEYBOARD SHORTCUTS ────────────────────────────────────────────────────────
 document.addEventListener('keydown',e=>{
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'&&!e.shiftKey){
+    if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')return;
+    e.preventDefault();
+    undo();
+    return;
+  }
   if(e.key==='Escape'){
     document.getElementById('searchBox').value='';
     searchQuery='';
@@ -2193,6 +2338,7 @@ document.addEventListener('keydown',e=>{
     document.getElementById('notesModal').classList.remove('open');
     document.getElementById('deadlineModal').classList.remove('open');
     document.getElementById('exportModal').classList.remove('open');
+    document.getElementById('userBadge').classList.remove('menu-open');
     hideAuthGate();
     if (document.activeElement) document.activeElement.blur();
     return;
@@ -2209,12 +2355,15 @@ document.addEventListener('keydown',e=>{
 });
 
 // ── TOAST ─────────────────────────────────────────────────────────────────────
-function toast(icon,msg){
+function toast(icon,msg,showUndo){
   const t=document.getElementById('toast');
   document.getElementById('toastIcon').innerHTML=icon;
   document.getElementById('toastMsg').textContent=msg;
+  const undoBtn=document.getElementById('toastUndoBtn');
+  undoBtn.style.display=(showUndo!==false && undoStack.length)?'':'none';
+  undoBtn.onclick=()=>{ t.classList.remove('show'); undo(); };
   t.classList.add('show');clearTimeout(t._t);
-  t._t=setTimeout(()=>t.classList.remove('show'),2800);
+  t._t=setTimeout(()=>t.classList.remove('show'),showUndo!==false?4500:2800);
 }
 
 // ── RENDER ALL ────────────────────────────────────────────────────────────────
