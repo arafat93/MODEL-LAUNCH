@@ -161,8 +161,9 @@ h1 span { color: var(--accent1); font-weight: 400; }
   background: rgba(16, 185, 129, 0.1);
   border: 1px solid rgba(16, 185, 129, 0.2);
   padding: 6px 14px; border-radius: 100px; letter-spacing: 0.5px;
-  text-transform: uppercase;
+  text-transform: uppercase; cursor: pointer; transition: all 0.2s ease;
 }
+.live-badge:hover { background: rgba(16, 185, 129, 0.18); border-color: rgba(16, 185, 129, 0.35); }
 .live-dot { width: 6px; height: 6px; background: var(--green); border-radius: 50%; animation: pulse 2s ease-in-out infinite; }
 @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.8); } }
 .last-updated { font-size: 12px; color: var(--text-muted); font-weight: 300; }
@@ -180,6 +181,16 @@ h1 span { color: var(--accent1); font-weight: 400; }
 .hdr-btn:hover { color: var(--text); border-color: var(--border-hover); background: var(--surface2); box-shadow: var(--shadow-sm); }
 .hdr-btn.accent { color: var(--accent1); border-color: var(--accent1-dim); background: var(--surface); }
 .hdr-btn.accent:hover { background: var(--accent1-dim); border-color: var(--accent1); }
+.hdr-btn.active-view { color: var(--accent1); border-color: var(--accent1); background: var(--accent1-dim); }
+.menu-item.active-view { color: var(--accent1); background: var(--accent1-dim); }
+.menu-item.active-view svg { color: var(--accent1); opacity: 1; }
+.archive-count-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 18px; height: 18px; padding: 0 5px;
+  background: var(--accent1); color: var(--bg);
+  border-radius: 100px; font-size: 10px; font-weight: 700;
+  line-height: 1;
+}
 
 /* ── FOOTER ── */
 footer {
@@ -299,6 +310,13 @@ footer {
 .stat-num.pend-val { color: var(--red); }
 .stat-num.pct-val { color: var(--text); }
 
+/* ── ARCHIVE CARD ── */
+.model-card.archived { cursor: default; opacity: 0.85; }
+.model-card.archived::after { display: none; }
+.model-card.archived .model-tag { background: var(--surface3); color: var(--text-muted); }
+.archive-card-actions { display: flex; gap: 10px; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border); }
+.archive-card-actions button { flex: 1; }
+
 /* ── SECTION LABEL ── */
 .section-label {
   font-size: 16px; font-weight: 600; color: var(--text);
@@ -332,7 +350,7 @@ footer {
   font-family: inherit; font-size: 13px; font-weight: 500;
   transition: all 0.3s ease; color: var(--text-muted); background: transparent;
 }
-.tab-btn.active { background: var(--surface2); color: var(--text); box-shadow: 0 2px 10px rgba(0,0,0,0.15); border: 1px solid var(--border); }
+.tab-btn.active { background: var(--accent1-dim); color: var(--accent1); box-shadow: 0 2px 10px rgba(0,0,0,0.15); border: 1px solid var(--accent1); }
 .tab-btn:hover:not(.active) { color: var(--text); background: rgba(255, 255, 255, 0.02); }
 
 /* ── FILTER BAR ── */
@@ -383,6 +401,19 @@ footer {
   align-items: center; min-height: 64px; transition: background 0.2s;
 }
 .task-row:last-child { border-bottom: none; }
+
+.empty-state {
+  display: none; flex-direction: column; align-items: center; text-align: center;
+  padding: 64px 24px; gap: 6px;
+}
+.empty-state.show { display: flex; }
+.empty-state-icon {
+  width: 52px; height: 52px; margin-bottom: 14px;
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  background: var(--accent1-dim); color: var(--accent1); font-size: 22px;
+}
+.empty-state-title { font-size: 15px; font-weight: 600; color: var(--text); }
+.empty-state-sub { font-size: 13px; color: var(--text-muted); font-weight: 300; max-width: 320px; }
 .task-row:hover { background: var(--surface2); }
 .task-row.hidden { display: none; }
 .task-row.dragging { opacity: 0.4; }
@@ -467,6 +498,36 @@ footer {
 .row-action-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 .row-action-btn.delete:hover:not(:disabled) { color: var(--bg); border-color: var(--red); background: var(--red); }
 .row-action-btn.edit:hover:not(:disabled) { color: var(--accent1); border-color: var(--accent1); background: var(--accent1-dim); }
+.row-action-btn.archive {
+  background: var(--surface);
+  border-color: var(--border);
+  color: var(--text-muted);
+  position: relative;
+  overflow: hidden;
+}
+.row-action-btn.archive:hover:not(:disabled),
+.row-action-btn.archive:focus-visible:not(:disabled) {
+  color: #2a2104;
+  border-color: var(--accent1-hover);
+  background: linear-gradient(135deg, #b8902c 0%, #f3da8a 28%, #e5c07b 50%, #fff3cf 68%, #b8902c 100%);
+  background-size: 220% 220%;
+  background-position: 0% 50%;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.4) inset, 0 4px 10px rgba(212,175,55,0.25);
+  transform: translateY(-1px);
+  animation: archiveSheen 1.6s ease-in-out infinite;
+}
+.row-action-btn.archive:active:not(:disabled) {
+  color: #2a2104;
+  border-color: var(--accent1-hover);
+  background: linear-gradient(135deg, #a07c22 0%, #d9bd6e 50%, #a07c22 100%);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.25) inset;
+  transform: translateY(0);
+  animation: none;
+}
+@keyframes archiveSheen {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
 .row-action-btn.save { color: var(--bg); border-color: var(--green); background: var(--green); }
 .row-action-btn.save:hover { filter: brightness(1.1); }
 .row-action-btn.cancel:hover { color: var(--bg); border-color: var(--red); background: var(--red); }
@@ -488,6 +549,28 @@ footer {
 }
 .add-task-input:focus { border-color: var(--accent1); box-shadow: 0 0 0 3px var(--accent1-dim); }
 .add-task-input::placeholder { color: var(--text-muted); font-weight: 300; }
+
+.add-task-position-wrap {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 0 14px 0 16px;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+  transition: all 0.3s ease;
+}
+.add-task-position-wrap:focus-within { border-color: var(--accent1); box-shadow: 0 0 0 3px var(--accent1-dim); }
+.add-task-position-label {
+  font-size: 11px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase;
+  color: var(--text-muted); white-space: nowrap;
+}
+.add-task-position {
+  width: 48px; background: transparent; border: none;
+  padding: 12px 0; color: var(--text); text-align: center;
+  font-family: inherit; font-size: 14px; outline: none;
+  -moz-appearance: textfield;
+}
+.add-task-position::-webkit-outer-spin-button,
+.add-task-position::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.add-task-position::placeholder { color: var(--text-muted); font-weight: 300; }
 
 .add-task-btn {
   padding: 12px 24px; border-radius: 12px; border: 1px solid var(--accent1);
@@ -605,6 +688,23 @@ footer {
 .modal-btn.primary:hover { filter: brightness(1.1); transform: translateY(-1px); }
 .modal-btn.secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
 .modal-btn.secondary:hover { background: var(--surface3); border-color: var(--border-hover); }
+.modal-btn.danger { background: var(--red); color: #fff; box-shadow: 0 4px 14px rgba(244, 63, 94, 0.3); }
+.modal-btn.danger:hover { filter: brightness(1.1); transform: translateY(-1px); }
+
+/* ── CONFIRM/ALERT MODAL ── */
+.confirm-box { width: min(420px, 90vw); text-align: center; }
+.confirm-icon {
+  width: 56px; height: 56px; margin: 0 auto 18px;
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: 24px;
+  background: var(--accent1-dim); color: var(--accent1);
+}
+.confirm-icon.danger { background: rgba(244, 63, 94, 0.1); color: var(--red); }
+.confirm-icon.warn { background: rgba(245, 158, 11, 0.1); color: var(--yellow); }
+.confirm-title { font-size: 18px; font-weight: 600; color: var(--text); margin-bottom: 8px; letter-spacing: -0.2px; }
+.confirm-message { font-size: 14px; color: var(--text-muted); line-height: 1.55; margin-bottom: 28px; }
+.confirm-actions { display: flex; gap: 12px; justify-content: center; }
+.confirm-actions .modal-btn { flex: 1; }
 
 /* ── AUTH GATE ── */
 #authGate {
@@ -698,21 +798,44 @@ footer {
   font-size: 11px; font-weight: 700; flex-shrink: 0;
 }
 .user-menu {
-  position: absolute; top: calc(100% + 8px); right: 0;
+  position: absolute; top: calc(100% + 10px); right: 0;
   background: var(--surface); border: 1px solid var(--border);
-  border-radius: 12px; box-shadow: var(--shadow-md);
-  padding: 6px; min-width: 140px; z-index: 50;
-  opacity: 0; visibility: hidden; transform: translateY(-6px);
+  border-radius: 14px; box-shadow: 0 12px 32px rgba(0,0,0,0.35), var(--shadow-md);
+  padding: 8px; min-width: 188px; z-index: 50;
+  opacity: 0; visibility: hidden; transform: translateY(-6px) scale(0.98);
   transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s;
 }
-.user-badge.menu-open .user-menu { opacity: 1; visibility: visible; transform: translateY(0); }
-.logout-btn {
-  display: block; width: 100%; text-align: left;
-  padding: 8px 12px; border-radius: 8px; border: none;
-  background: transparent; color: var(--text-muted); font-family: inherit;
-  font-size: 12px; cursor: pointer; transition: all 0.15s; white-space: nowrap;
+.user-badge.menu-open .user-menu { opacity: 1; visibility: visible; transform: translateY(0) scale(1); }
+@media (hover: hover) and (pointer: fine) {
+  .user-badge:hover .user-menu { opacity: 1; visibility: visible; transform: translateY(0) scale(1); }
+  .user-badge:hover .user-badge-caret { transform: rotate(180deg); }
 }
-.logout-btn:hover { background: var(--accent1-dim); color: var(--red); }
+.menu-item {
+  display: flex; align-items: center; gap: 10px; width: 100%; text-align: left;
+  padding: 9px 10px; border-radius: 9px; border: none;
+  background: transparent; color: var(--text-muted); font-family: inherit;
+  font-size: 12.5px; font-weight: 500; letter-spacing: 0.1px; cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease; white-space: nowrap;
+  box-sizing: border-box;
+}
+.menu-item svg { flex-shrink: 0; opacity: 0.75; transition: opacity 0.15s ease; }
+.menu-item:hover { background: var(--accent1-dim); color: var(--text); }
+.menu-item:hover svg { opacity: 1; color: var(--accent1); }
+.menu-item:active { background: var(--surface2); }
+.menu-item .archive-count-badge { margin-left: auto; }
+.menu-divider { height: 1px; background: var(--border); margin: 6px 6px; }
+.logout-btn {
+  display: flex; align-items: center; gap: 10px; width: 100%; text-align: left;
+  padding: 9px 10px; border-radius: 9px; border: none;
+  background: transparent; color: var(--text-muted); font-family: inherit;
+  font-size: 12.5px; font-weight: 500; letter-spacing: 0.1px; cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease; white-space: nowrap;
+  box-sizing: border-box;
+}
+.logout-btn svg { flex-shrink: 0; opacity: 0.75; transition: opacity 0.15s ease; }
+.logout-btn:hover { background: rgba(239, 68, 68, 0.1); color: var(--red); }
+.logout-btn:hover svg { opacity: 1; color: var(--red); }
+.logout-btn:active { filter: brightness(0.95); }
 
 /* ── DEADLINE MODAL ── */
 .deadline-input {
@@ -741,6 +864,27 @@ footer {
   cursor: pointer; transition: all 0.15s; white-space: nowrap;
 }
 .toast-undo-btn:hover { background: var(--surface3); border-color: var(--border-hover); }
+
+/* ── BACK TO TOP ── */
+.back-to-top {
+  position: fixed; bottom: 56px; right: 32px;
+  width: 46px; height: 46px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; z-index: 300;
+  box-shadow: var(--shadow-md);
+  opacity: 0; visibility: hidden; transform: translateY(16px) scale(0.9);
+  transition: opacity 0.35s ease, visibility 0.35s ease, transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease, background 0.25s ease;
+}
+.back-to-top.show { opacity: 1; visibility: visible; transform: translateY(0) scale(1); }
+.back-to-top:hover { border-color: var(--accent1); background: var(--accent1-dim); box-shadow: 0 12px 32px -8px rgba(212, 175, 55, 0.3); }
+.back-to-top:active { transform: scale(0.92); }
+.back-to-top svg { stroke: var(--accent1); transition: transform 0.25s ease; }
+.back-to-top:hover svg { transform: translateY(-2px); }
+@media (max-width: 640px) {
+  .back-to-top { bottom: 50px; right: 20px; width: 42px; height: 42px; }
+}
 
 /* ── FOOTER ── */
 .footer-bar {
@@ -774,9 +918,23 @@ kbd {
 @media(max-width: 900px) {
   .kpi-grid { grid-template-columns: repeat(2, 1fr); }
   .models-grid { grid-template-columns: 1fr; }
-  .table-header, .task-row { grid-template-columns: 26px 40px 1fr 100px 110px; }
-  .task-row > *:nth-child(6), .task-row > *:nth-child(7),
+  .table-header { grid-template-columns: 26px 40px 1fr 100px 110px; }
   .table-header > *:nth-child(6), .table-header > *:nth-child(7) { display: none; }
+  .task-row {
+    grid-template-columns: 26px 40px 1fr 100px 110px;
+    grid-template-rows: auto auto;
+    grid-template-areas:
+      "sn chk name prio status"
+      "spacer1 spacer2 icons actions actions";
+    row-gap: 8px; padding-top: 12px; padding-bottom: 12px;
+  }
+  .task-row > *:nth-child(1) { grid-area: sn; }
+  .task-row > *:nth-child(2) { grid-area: chk; }
+  .task-row > *:nth-child(3) { grid-area: name; }
+  .task-row > *:nth-child(4) { grid-area: prio; }
+  .task-row > *:nth-child(5) { grid-area: status; }
+  .task-row > .task-icons-cell { grid-area: icons; justify-content: flex-start; }
+  .task-row > .row-actions { grid-area: actions; justify-content: flex-end; }
   .compare-header, .compare-row { grid-template-columns: 40px 1fr 140px; }
   .compare-header > *:last-child, .compare-row > *:last-child { display: none; }
 }
@@ -847,18 +1005,20 @@ kbd {
     </div>
   </div>
   <div class="header-right">
-    <div class="live-badge"><span class="live-dot"></span>LIVE</div>
+    <div class="live-badge" id="liveBadge" title="Return to live dashboard"><span class="live-dot"></span>LIVE</div>
     <div class="last-updated" id="lastUpdated"></div>
     <div class="user-badge" id="userBadge" style="display:none;">
       <div class="user-avatar" id="userAvatar">?</div>
       <span id="userEmail" style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
       <span class="user-badge-caret">▾</span>
       <div class="user-menu" id="userMenu">
-        <button class="logout-btn" id="logoutBtn">Sign Out</button>
+        <button class="menu-item" id="archiveViewBtn" title="View archived models"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="4" rx="1"/><path d="M5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8"/><line x1="10" y1="13" x2="14" y2="13"/></svg><span>Archived</span><span class="archive-count-badge" id="archiveCountBadge" style="display:none;">0</span></button>
+        <button class="menu-item" id="undoBtn" title="Undo last change" style="display:none;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M3.51 13a9 9 0 1 0 2.13-9.36L3 7"/></svg><span>Undo</span></button>
+        <div class="menu-divider"></div>
+        <button class="logout-btn" id="logoutBtn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span>Sign Out</span></button>
       </div>
     </div>
     <button class="hdr-btn accent" id="loginOpenBtn">✦ <span>Login</span></button>
-    <button class="hdr-btn" id="undoBtn" title="Undo last change" style="display:none;">↺ <span>Undo</span></button>
     <button class="hdr-btn" id="themeToggleBtn" title="Toggle dark/light mode">✧ <span>Theme</span></button>
     <button class="hdr-btn accent" id="exportBtn" title="Export all models to Excel (.xlsx)">↓ <span>Export</span></button>
     <label class="hdr-btn accent" title="Import from Excel — adds new models/tasks, keeps existing data" style="cursor:pointer;">
@@ -892,6 +1052,9 @@ kbd {
   </div>
 </div>
 
+<!-- MAIN DASHBOARD VIEW (hidden when Archive view is active) -->
+<div id="mainDashboardView">
+
 <!-- MODEL PROGRESS CARDS -->
 <div class="models-section-hdr">
   <div class="section-label" style="margin-bottom:0;flex:1;">Models In Progress</div>
@@ -907,7 +1070,7 @@ kbd {
 <div class="models-grid" id="modelsGrid"></div>
 
 <!-- DETAIL SECTION -->
-<div class="section-label">Task Checklist</div>
+<div class="section-label" id="taskChecklistLabel">Task Checklist</div>
 
 <div id="taskSectionWrap">
 <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:20px;">
@@ -922,6 +1085,7 @@ kbd {
       📥 <span>Import Excel</span>
       <input type="file" id="importExcelFile" accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv" style="display:none;">
     </label>
+    <button class="row-action-btn archive" id="archiveModelBtn" title="Archive current model" style="width:auto;padding:0 14px;height:36px;font-size:12px;font-weight:600;">Archive</button>
     <button class="row-action-btn delete" id="deleteModelBtn" title="Delete current model" style="width:auto;padding:0 14px;height:36px;font-size:12px;font-weight:600;">Delete Model</button>
     <input class="search-box" type="text" id="searchBox" placeholder="Search tasks…">
   </div>
@@ -951,6 +1115,10 @@ kbd {
 <!-- ADD TASK -->
 <div class="add-task-bar" id="addTaskBar">
   <input class="add-task-input" type="text" id="newTaskInput" placeholder="Type a new task and press Enter…">
+  <div class="add-task-position-wrap" title="Position (optional) — leave blank to add at the end">
+    <span class="add-task-position-label">Pos.</span>
+    <input class="add-task-position" type="number" id="newTaskPosition" min="1" placeholder="#">
+  </div>
   <button class="add-task-btn" id="addTaskBtn">Add Task</button>
 </div>
 
@@ -966,6 +1134,11 @@ kbd {
     <div style="text-align:right;">Actions</div>
   </div>
   <div id="taskRows"></div>
+  <div class="empty-state" id="taskEmptyState">
+    <div class="empty-state-icon">✓</div>
+    <div class="empty-state-title" id="taskEmptyStateTitle">No tasks yet</div>
+    <div class="empty-state-sub" id="taskEmptyStateSub">Type a task above and press Enter to add your first one.</div>
+  </div>
 </div>
 </div>
 
@@ -986,8 +1159,25 @@ kbd {
   <div id="compareRows"></div>
 </div>
 
+</div>
+<!-- END MAIN DASHBOARD VIEW -->
+
+<!-- ARCHIVE VIEW -->
+<div id="archiveView" style="display:none;">
+  <div class="models-section-hdr">
+    <div class="section-label" style="margin-bottom:0;flex:1;">Archived Models</div>
+  </div>
+  <div class="models-grid" id="archiveGrid"></div>
+  <div class="empty-state" id="archiveEmptyState" style="display:none;">
+    <div class="empty-state-icon">🗄</div>
+    <div class="empty-state-title">No archived models</div>
+    <div class="empty-state-sub">Models you archive will show up here, tucked away from your active dashboard and KPIs.</div>
+  </div>
+</div>
+<!-- END ARCHIVE VIEW -->
+
 <!-- FOOTER -->
-<div class="footer-bar">
+<div class="footer-bar" id="footerBar">
   <div>
     <div style="font-size:16px;font-weight:600;color:var(--text);margin-bottom:6px;">Overall Completion</div>
     <div class="footer-text">Combined progress trajectory across all operational models</div>
@@ -1031,6 +1221,13 @@ kbd {
 </footer>
 
 </div><!-- /wrap -->
+
+<!-- BACK TO TOP -->
+<button class="back-to-top" id="backToTopBtn" title="Back to top" aria-label="Back to top">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 19V5M5 12l7-7 7 7"/>
+  </svg>
+</button>
 
 
 <!-- TOAST -->
@@ -1081,6 +1278,19 @@ kbd {
   </div>
 </div>
 
+<!-- CONFIRM / ALERT MODAL (generic, reused via showConfirm/showAlert JS helpers) -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal-box confirm-box">
+    <div class="confirm-icon" id="confirmIcon">!</div>
+    <div class="confirm-title" id="confirmTitle">Are you sure?</div>
+    <div class="confirm-message" id="confirmMessage"></div>
+    <div class="confirm-actions" id="confirmActions">
+      <button class="modal-btn secondary" id="confirmCancelBtn">Cancel</button>
+      <button class="modal-btn primary" id="confirmOkBtn">Confirm</button>
+    </div>
+  </div>
+</div>
+
 <!-- EXPORT MODAL -->
 <!-- Export modal removed: header Export button now downloads an all-models
      Excel workbook directly (one sheet per model), matching the Excel
@@ -1088,9 +1298,9 @@ kbd {
 
 <!-- Loaded here (end of body) instead of <head> so the page renders immediately
      without waiting on these network round-trips first. -->
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js" onerror="window.__firebaseLoadFailed=true;"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js" onerror="window.__firebaseLoadFailed=true;"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js" onerror="window.__firebaseLoadFailed=true;"></script>
 <script>
 // ── FIREBASE CONFIG ───────────────────────────────────────────────────────────
 const firebaseConfig = {
@@ -1101,14 +1311,20 @@ const firebaseConfig = {
   messagingSenderId: "323149984155",
   appId: "1:323149984155:web:f38464a174b16d77ee713e"
 };
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db   = firebase.firestore();
-// Enable offline persistence so cached data loads instantly on repeat logins
-// and the app still works (read-only-ish) on flaky connections.
-db.enablePersistence({ synchronizeTabs: true }).catch(err=>{
-  console.warn('Firestore persistence unavailable:', err.code);
-});
+let auth, db;
+try{
+  firebase.initializeApp(firebaseConfig);
+  auth = firebase.auth();
+  db   = firebase.firestore();
+  // Enable offline persistence so cached data loads instantly on repeat logins
+  // and the app still works (read-only-ish) on flaky connections.
+  db.enablePersistence({ synchronizeTabs: true }).catch(err=>{
+    console.warn('Firestore persistence unavailable:', err.code);
+  });
+}catch(err){
+  console.warn('Firebase init failed:', err);
+  window.__firebaseLoadFailed=true;
+}
 
 // ── FIREBASE AUTH UI ──────────────────────────────────────────────────────────
 let saveTimer=null;
@@ -1147,6 +1363,7 @@ async function doLogin(){
   const pass=document.getElementById('loginPassword').value;
   const errEl=document.getElementById('loginError');
   const btn=document.getElementById('loginBtn');
+  if(window.__firebaseLoadFailed){errEl.textContent='Sign-in service unavailable right now. Check your connection and reload.';return;}
   if(!email||!pass){errEl.textContent='Please enter email and password.';return;}
   btn.disabled=true;btn.textContent='Signing in…';errEl.textContent='';
   try{
@@ -1161,10 +1378,11 @@ document.getElementById('loginPassword').onkeydown=e=>{if(e.key==='Enter')doLogi
 document.getElementById('loginEmail').onkeydown=e=>{if(e.key==='Enter')doLogin();};
 // Google Sign In
 document.getElementById('googleBtn').onclick = async () => {
-  const provider = new firebase.auth.GoogleAuthProvider();
   const errEl = document.getElementById('loginError');
   errEl.textContent = '';
-  
+  if(window.__firebaseLoadFailed){errEl.textContent='Sign-in service unavailable right now. Check your connection and reload.';return;}
+  const provider = new firebase.auth.GoogleAuthProvider();
+
   try {
     await auth.signInWithPopup(provider);
     // You do not need to write extra redirect logic here! 
@@ -1187,6 +1405,7 @@ async function doRegister(){
   const okEl=document.getElementById('regSuccess');
   const btn=document.getElementById('registerBtn');
   errEl.textContent='';okEl.textContent='';
+  if(window.__firebaseLoadFailed){errEl.textContent='Sign-in service unavailable right now. Check your connection and reload.';return;}
   if(!email||!pass){errEl.textContent='Please fill in all fields.';return;}
   if(pass!==confirm){errEl.textContent='Passwords do not match.';return;}
   if(pass.length<6){errEl.textContent='Password must be at least 6 characters.';return;}
@@ -1316,8 +1535,11 @@ function listenForLastUpdated(uid){
 }
 
 function save(){
-  if(!auth.currentUser) return;
+  // Undo history is purely local state, so it should track every change
+  // whether or not the person is signed in — only the Firestore write
+  // below is conditional on having an account to save to.
   pushUndoSnapshot();
+  if(!auth||!auth.currentUser) return;
   clearTimeout(saveTimer);
   saveTimer=setTimeout(async()=>{
     try{
@@ -1325,6 +1547,7 @@ function save(){
         tasks:state,
         deadlines,
         deletedModels:[...deletedModelsSet],
+        archivedModels:[...archivedModelsSet],
         updatedAt:firebase.firestore.FieldValue.serverTimestamp()
       });
       // lastUpdated label is refreshed automatically by the live Firestore
@@ -1345,6 +1568,7 @@ function snapshotNow(){
     state:JSON.parse(JSON.stringify(state)),
     deadlines:JSON.parse(JSON.stringify(deadlines)),
     deletedModels:[...deletedModelsSet],
+    archivedModels:[...archivedModelsSet],
     activeTab
   };
 }
@@ -1371,6 +1595,7 @@ function undo(){
   state=prev.state;
   deadlines=prev.deadlines;
   deletedModelsSet=new Set(prev.deletedModels);
+  archivedModelsSet=new Set(prev.archivedModels||[]);
   refreshModelsList();
   activeTab=models.includes(prev.activeTab)?prev.activeTab:(models[0]||'');
   selectedTasks.clear();editingIdx=null;
@@ -1378,12 +1603,12 @@ function undo(){
   // a state we just left — re-baseline without pushing a new undo step.
   lastSnapshot=snapshotNow();
   updateUndoBtn();
-  if(auth.currentUser){
+  if(auth&&auth.currentUser){
     clearTimeout(saveTimer);
     saveTimer=setTimeout(async()=>{
       try{
         await getUserDoc(auth.currentUser.uid).set({
-          tasks:state,deadlines,deletedModels:[...deletedModelsSet],
+          tasks:state,deadlines,deletedModels:[...deletedModelsSet],archivedModels:[...archivedModelsSet],
           updatedAt:firebase.firestore.FieldValue.serverTimestamp()
         });
       }catch(e){ console.error('Save error:',e); toast('⚠','Failed to save data',false);}
@@ -1394,6 +1619,8 @@ function undo(){
 }
 
 let deletedModelsSet=new Set();
+let archivedModelsSet=new Set();
+let archiveViewActive=false;
 
 // Shared inline calendar icon (replaces the 🗓 emoji, which renders as a flat
 // info-glyph on some platforms/fonts). Inherits color via currentColor.
@@ -1409,6 +1636,8 @@ let previewMode = false;
 function enterPreviewMode(){
   previewMode = true;
   deletedModelsSet = new Set();
+  archivedModelsSet = new Set();
+  setArchiveView(false);
   ({tasks: state, deadlines} = loadState(null));
   refreshModelsList();
   if (!activeTab && models.length > 0) activeTab = models[0];
@@ -1438,10 +1667,13 @@ async function handleAuthState(user){
     emailEl.textContent=(user.email||'').split('@')[0];
     badge.style.display='flex';
     loginOpenBtn.style.display='none';
+    document.getElementById('archiveViewBtn').style.display='';
 
     // Load user's data from Firestore
     const saved=await loadFromFirestore(user.uid);
     deletedModelsSet=new Set(saved?.deletedModels||[]);
+    archivedModelsSet=new Set(saved?.archivedModels||[]);
+    setArchiveView(false);
     ({tasks: state, deadlines}=loadState(saved));
 refreshModelsList();
     if (!activeTab && models.length > 0) activeTab = models[0];
@@ -1459,6 +1691,8 @@ refreshModelsList();
     document.getElementById('userBadge').style.display='none';
     document.getElementById('userBadge').classList.remove('menu-open');
     document.getElementById('loginOpenBtn').style.display='';
+    document.getElementById('archiveViewBtn').style.display='none';
+    setArchiveView(false);
     document.getElementById('loginBtn').disabled=false;
     document.getElementById('loginBtn').textContent='Sign In';
     document.getElementById('registerBtn').disabled=false;
@@ -1613,7 +1847,7 @@ let editingIdx = null;
 let selectedTasks = new Set();
 let dragSrcIdx = null;
 
-function refreshModelsList(){models=Object.keys(state);}
+function refreshModelsList(){models=Object.keys(state).filter(m=>!archivedModelsSet.has(m));}
 // save() is defined above in the Firebase section
 
 // ── STATS ─────────────────────────────────────────────────────────────────────
@@ -1700,10 +1934,98 @@ function renderModelCards(){
         <div class="stat-item"><div class="stat-num pend-val">${s.pending}</div><div class="stat-lbl">PENDING</div></div>
         <div class="stat-item"><div class="stat-num" style="color:var(--text-muted)">${s.total}</div><div class="stat-lbl">TOTAL</div></div>
       </div>`;
-    card.onclick=()=>{activeTab=m;editingIdx=null;selectedTasks.clear();renderAll();};
+    card.onclick=()=>{
+      activeTab=m;editingIdx=null;selectedTasks.clear();renderAll();
+      const target=document.getElementById('taskChecklistLabel');
+      if(target) target.scrollIntoView({behavior:'smooth',block:'start'});
+    };
     grid.appendChild(card);
     setTimeout(()=>{card.querySelector('.progress-bar-fill').style.width=s.pct+'%';},100+idx*80);
   });
+}
+
+// ── ARCHIVE VIEW ──────────────────────────────────────────────────────────────
+function updateArchiveBadge(){
+  const badge=document.getElementById('archiveCountBadge');
+  const n=archivedModelsSet.size;
+  badge.textContent=n;
+  badge.style.display=n>0?'':'none';
+}
+
+function setArchiveView(active){
+  archiveViewActive=active;
+  document.getElementById('mainDashboardView').style.display=active?'none':'';
+  document.getElementById('archiveView').style.display=active?'':'none';
+  const footerBarEl=document.getElementById('footerBar');
+  if(footerBarEl) footerBarEl.style.display=active?'none':'';
+  document.getElementById('archiveViewBtn').classList.toggle('active-view',active);
+  if(active) renderArchiveView();
+}
+
+document.getElementById('archiveViewBtn').onclick=()=>setArchiveView(!archiveViewActive);
+document.getElementById('liveBadge').onclick=()=>setArchiveView(false);
+
+function renderArchiveView(){
+  const grid=document.getElementById('archiveGrid');
+  const emptyState=document.getElementById('archiveEmptyState');
+  grid.innerHTML='';
+  const archived=[...archivedModelsSet].filter(m=>m in state);
+  emptyState.style.display=archived.length?'none':'';
+  grid.style.display=archived.length?'':'none';
+  archived.forEach((m,idx)=>{
+    const s=stats(m);
+    const card=document.createElement('div');
+    card.className='model-card archived theme-'+(idx%4);
+    const dl=deadlineLabel(m);
+    const dlHtml=dl?`<div class="model-deadline ${dl.cls}">${CAL_ICON} ${dl.text}</div>`
+      :`<div class="model-deadline">${CAL_ICON} No deadline set</div>`;
+    card.innerHTML=`
+      <div class="model-header">
+        <div>
+          <div class="model-name">${m}</div>
+          ${dlHtml}
+        </div>
+        <div class="model-tag">ARCHIVED</div>
+      </div>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" data-pct="${s.pct}" style="width:${s.pct}%"></div>
+      </div>
+      <div class="model-stats">
+        <div class="stat-item"><div class="stat-num pct-val">${s.pct}%</div><div class="stat-lbl">PROGRESS</div></div>
+        <div class="stat-item"><div class="stat-num done-val">${s.done}</div><div class="stat-lbl">DONE</div></div>
+        <div class="stat-item"><div class="stat-num pend-val">${s.pending}</div><div class="stat-lbl">PENDING</div></div>
+        <div class="stat-item"><div class="stat-num" style="color:var(--text-muted)">${s.total}</div><div class="stat-lbl">TOTAL</div></div>
+      </div>
+      <div class="archive-card-actions">
+        <button class="row-action-btn edit" data-action="restore" data-model="${m}" style="height:36px;font-size:12px;font-weight:600;">Restore</button>
+        <button class="row-action-btn delete" data-action="delete" data-model="${m}" style="height:36px;font-size:12px;font-weight:600;">Delete</button>
+      </div>`;
+    grid.appendChild(card);
+  });
+  grid.querySelectorAll('[data-action="restore"]').forEach(btn=>{
+    btn.onclick=()=>restoreModel(btn.dataset.model);
+  });
+  grid.querySelectorAll('[data-action="delete"]').forEach(btn=>{
+    btn.onclick=()=>deleteModel(btn.dataset.model);
+  });
+}
+
+function archiveModel(name){
+  archivedModelsSet.add(name);
+  refreshModelsList();
+  if(activeTab===name) activeTab=models[0]||'';
+  editingIdx=null;
+  save();renderAll();updateArchiveBadge();
+  toast('🗄',`Model archived: ${name}`);
+}
+
+function restoreModel(name){
+  archivedModelsSet.delete(name);
+  refreshModelsList();
+  activeTab=name;
+  save();renderAll();updateArchiveBadge();
+  if(archiveViewActive) renderArchiveView();
+  toast('↺',`Model restored: ${name}`);
 }
 
 // ── TABS & FILTERS ────────────────────────────────────────────────────────────
@@ -1737,6 +2059,7 @@ function renderTaskList(){
   const compare=document.getElementById('compareGrid');
   const addBar=document.getElementById('addTaskBar');
   const delBtn=document.getElementById('deleteModelBtn');
+  const archBtn=document.getElementById('archiveModelBtn');
   const setDlBtn=document.getElementById('setDeadlineBtn');
   const exportBtn=document.getElementById('exportExcelBtn');
   const importLbl=document.getElementById('importExcelLabel');
@@ -1745,13 +2068,13 @@ function renderTaskList(){
 
   if(activeTab==='Compare Models'){
     table.style.display='none';addBar.style.display='none';
-    delBtn.style.display='none';setDlBtn.style.display='none';
+    delBtn.style.display='none';archBtn.style.display='none';setDlBtn.style.display='none';
     exportBtn.style.display='none';importLbl.style.display='none';
     searchBoxEl.style.display='none';filterBarEl.style.display='none';
     compare.style.display='block';renderCompare();return;
   }
   table.style.display='';addBar.style.display='';
-  delBtn.style.display='';setDlBtn.style.display='';
+  delBtn.style.display='';archBtn.style.display='';setDlBtn.style.display='';
   exportBtn.style.display='';importLbl.style.display='';
   searchBoxEl.style.display='';filterBarEl.style.display='';
   compare.style.display='none';
@@ -1779,6 +2102,25 @@ function renderTaskList(){
   const visibleIdxs=tasks.map((t,i)=>matchesFilter(t)?i:null).filter(i=>i!==null);
   selAll.checked=visibleIdxs.length>0&&visibleIdxs.every(i=>selectedTasks.has(i));
   selAll.indeterminate=!selAll.checked&&visibleIdxs.some(i=>selectedTasks.has(i));
+
+  const emptyStateEl=document.getElementById('taskEmptyState');
+  const emptyTitleEl=document.getElementById('taskEmptyStateTitle');
+  const emptySubEl=document.getElementById('taskEmptyStateSub');
+  const tableHeaderEl=document.querySelector('#checklistTable .table-header');
+  if(tasks.length===0){
+    emptyTitleEl.textContent='No tasks yet';
+    emptySubEl.textContent=`Type a task above and press Enter to add the first one to ${activeTab}.`;
+    emptyStateEl.classList.add('show');
+    if(tableHeaderEl) tableHeaderEl.style.display='none';
+  } else if(visibleIdxs.length===0){
+    emptyTitleEl.textContent='No matching tasks';
+    emptySubEl.textContent='Try a different search term or filter.';
+    emptyStateEl.classList.add('show');
+    if(tableHeaderEl) tableHeaderEl.style.display='';
+  } else {
+    emptyStateEl.classList.remove('show');
+    if(tableHeaderEl) tableHeaderEl.style.display='';
+  }
 
   tasks.forEach((task,idx)=>{
     const row=document.createElement('div');
@@ -1832,7 +2174,12 @@ function renderTaskList(){
       const tasks2=state[activeTab];
       const[moved]=tasks2.splice(dragSrcIdx,1);
       tasks2.splice(idx,0,moved);
-      renumber(tasks2);dragSrcIdx=null;save();renderAll();
+      renumber(tasks2);dragSrcIdx=null;
+      // Selections are stored by array index, which this reorder invalidates —
+      // clear rather than risk the checkbox marking the wrong task as selected.
+      selectedTasks.clear();
+      if(editingIdx!==null) editingIdx=null;
+      save();renderAll();
     });
 
     row.querySelector('.row-chk').onchange=e=>{
@@ -1957,12 +2304,43 @@ function toggleTask(model,idx){
   task.done=!task.done;
   save();renderAll();
   toast(task.done?'✓':'↺',task.done?`Marked done: ${task.name.slice(0,28)}`:`Reopened: ${task.name.slice(0,28)}`);
+  if(task.done){
+    const s=stats(model);
+    if(s.pct===100&&!archivedModelsSet.has(model)) maybePromptArchive(model);
+  }
 }
-function addTask(model,name){
+async function maybePromptArchive(model){
+  const ok=await showConfirm({
+    title:'All tasks complete 🎉',
+    message:`Every task for "${model}" is done. Move it to the archive to tidy up your active dashboard?`,
+    confirmText:'Archive Model',
+    cancelText:'Not now',
+    icon:'🗄'
+  });
+  if(ok&&state[model]) archiveModel(model);
+}
+function addTask(model,name,position){
   const trimmed=name.trim();if(!trimmed)return;
-  state[model].push({sn:state[model].length+1,name:trimmed.toUpperCase(),done:false,priority:'med',notes:'',taskDeadline:''});
-  renumber(state[model]);save();renderAll();
-  toast('＋',`Task added: ${trimmed.slice(0,28)}`);
+  const tasks=state[model];
+  const upperName=trimmed.toUpperCase();
+  const isDuplicate=tasks.some(t=>t.name.toUpperCase()===upperName);
+  if(isDuplicate){
+    toast('⚠','This task already exists. Try a different one.',false);
+    return;
+  }
+  const newTask={sn:tasks.length+1,name:upperName,done:false,priority:'med',notes:'',taskDeadline:''};
+  let insertAt=tasks.length;
+  if(position!==undefined&&position!==null&&position!==''){
+    const p=parseInt(position,10);
+    if(!isNaN(p)) insertAt=Math.max(0,Math.min(tasks.length,p-1));
+  }
+  tasks.splice(insertAt,0,newTask);
+  renumber(tasks);
+  // Inserting anywhere but the end shifts every later index, which would
+  // desync any existing checkbox selections — clear to stay safe.
+  if(insertAt<tasks.length-1){ selectedTasks.clear(); if(editingIdx!==null) editingIdx=null; }
+  save();renderAll();
+  toast('＋',`Task added${insertAt<tasks.length-1?` at #${insertAt+1}`:''}: ${trimmed.slice(0,28)}`);
 }
 function renameTask(model,idx,newName){
   const trimmed=newName.trim();
@@ -1971,36 +2349,59 @@ function renameTask(model,idx,newName){
   const old=task.name;task.name=trimmed.toUpperCase();
   save();renderAll();toast('✎',`Renamed: ${old.slice(0,20)} → ${task.name.slice(0,20)}`);
 }
-function deleteTask(model,idx){
+async function deleteTask(model,idx){
   const task=state[model][idx];
-  if(!confirm(`Delete "${task.name}"?`))return;
+  const ok=await showConfirm({title:'Delete task?',message:`"${task.name}" will be permanently removed from this checklist.`,confirmText:'Delete',danger:true,icon:'🗑'});
+  if(!ok)return;
   state[model].splice(idx,1);renumber(state[model]);
-  selectedTasks.delete(idx);save();renderAll();
+  // Removing a row shifts every later index down by one — rebuild the
+  // selection set accordingly instead of just dropping the deleted index,
+  // or selections below it would silently point at the wrong task.
+  const shifted=new Set();
+  selectedTasks.forEach(i=>{
+    if(i<idx) shifted.add(i);
+    else if(i>idx) shifted.add(i-1);
+  });
+  selectedTasks=shifted;
+  if(editingIdx!==null){
+    if(editingIdx===idx) editingIdx=null;
+    else if(editingIdx>idx) editingIdx-=1;
+  }
+  save();renderAll();
   toast('×',`Deleted: ${task.name.slice(0,28)}`);
 }
 function moveTask(model,idx,dir){
   const tasks=state[model];const newIdx=idx+dir;
   if(newIdx<0||newIdx>=tasks.length)return;
   [tasks[idx],tasks[newIdx]]=[tasks[newIdx],tasks[idx]];
-  renumber(tasks);save();renderAll();
+  renumber(tasks);
+  // Selections are stored by array index, which this reorder invalidates —
+  // clear rather than risk the checkbox marking the wrong task as selected.
+  selectedTasks.clear();
+  if(editingIdx!==null) editingIdx=null;
+  save();renderAll();
 }
-function addModel(name,deadline){
+async function addModel(name,deadline){
   const trimmed=name.trim();if(!trimmed)return;
   const key=trimmed.toUpperCase();
-  if(models.some(m=>m.toUpperCase()===key)){alert(`Model "${trimmed}" already exists.`);return;}
+  if(Object.keys(state).some(m=>m.toUpperCase()===key)){await showAlert({title:'Model already exists',message:`A model named "${trimmed}" is already on your list.`,tone:'warn'});return;}
   state[trimmed]=STANDARD_TASK_TEMPLATE.map((n,i)=>({sn:i+1,name:n,done:false,priority:'med',notes:'',taskDeadline:''}));
   if(deadline)deadlines[trimmed]=deadline;
   deletedModelsSet.delete(trimmed);
   refreshModelsList();activeTab=trimmed;editingIdx=null;save();renderAll();
   toast('＋',`Model added: ${trimmed}`);
 }
-function deleteModel(name){
-  if(models.length<=1){alert("Can't delete last model.");return;}
-  if(!confirm(`Delete model "${name}" and all tasks?`))return;
+async function deleteModel(name){
+  if(!archivedModelsSet.has(name)&&models.length<=1){await showAlert({title:"Can't delete this model",message:'You need at least one model on the dashboard.',tone:'warn'});return;}
+  const ok=await showConfirm({title:'Delete model?',message:`"${name}" and all of its tasks will be permanently removed.`,confirmText:'Delete Model',danger:true,icon:'🗑'});
+  if(!ok)return;
   delete state[name];delete deadlines[name];
+  archivedModelsSet.delete(name);
   if(name in INITIAL_DATA) deletedModelsSet.add(name);
   refreshModelsList();if(activeTab===name)activeTab=models[0];
-  editingIdx=null;save();renderAll();toast('×',`Model deleted: ${name}`);
+  editingIdx=null;save();renderAll();
+  if(archiveViewActive) renderArchiveView();
+  toast('×',`Model deleted: ${name}`);
 }
 
 // ── NOTES & DEADLINE MODALS ───────────────────────────────────────────────────
@@ -2106,12 +2507,15 @@ document.getElementById('bulkMoveBottomBtn').onclick=()=>{
   save();renderAll();
   toast('↓',`Moved ${moving.length} tasks to bottom`);
 };
-document.getElementById('bulkDeleteBtn').onclick=()=>{
+document.getElementById('bulkDeleteBtn').onclick=async()=>{
   const n=selectedTasks.size;
-  if(!confirm(`Delete ${n} tasks?`))return;
+  const ok=await showConfirm({title:'Delete selected tasks?',message:`${n} task${n===1?'':'s'} will be permanently removed from this checklist.`,confirmText:`Delete ${n}`,danger:true,icon:'🗑'});
+  if(!ok)return;
   const idxs=[...selectedTasks].sort((a,b)=>b-a);
   idxs.forEach(i=>state[activeTab].splice(i,1));
-  renumber(state[activeTab]);selectedTasks.clear();save();renderAll();
+  renumber(state[activeTab]);selectedTasks.clear();
+  if(editingIdx!==null) editingIdx=null;
+  save();renderAll();
   toast('×',`Deleted ${n} tasks`);
 };
 document.getElementById('bulkClearBtn').onclick=()=>{selectedTasks.clear();updateBulkBar();renderTaskList();};
@@ -2135,8 +2539,8 @@ function excelSafeSheetName(name){
   return name.replace(/[\\/?*\[\]:]/g,' ').slice(0,31).trim()||'Model';
 }
 document.getElementById('exportBtn').onclick=async()=>{
-  if(!models.length){alert('Nothing to export yet.');return;}
-  try{ await loadXLSX(); }catch(e){ alert('Could not load the Excel library. Check your connection and try again.'); return; }
+  if(!models.length){await showAlert({title:'Nothing to export',message:'Add at least one model before exporting.',tone:'warn'});return;}
+  try{ await loadXLSX(); }catch(e){ await showAlert({title:'Could not load Excel library',message:'Check your internet connection and try again.',tone:'error'}); return; }
   const prioMap={high:'High',med:'Med',low:'Low'};
   const wb=XLSX.utils.book_new();
   const usedNames=new Set();
@@ -2161,11 +2565,11 @@ document.getElementById('exportBtn').onclick=async()=>{
 document.getElementById('importFile').onchange=async e=>{
   const file=e.target.files[0];if(!file)return;
   const isExcel=/\.(xlsx|xls)$/i.test(file.name);
-  if(!isExcel){alert('Please choose a valid .xlsx or .xls workbook.');e.target.value='';return;}
+  if(!isExcel){await showAlert({title:'Unsupported file',message:'Please choose a valid .xlsx or .xls workbook.',tone:'warn'});e.target.value='';return;}
 
-  try{ await loadXLSX(); }catch(err){ alert('Could not load the Excel library. Check your connection and try again.'); e.target.value=''; return; }
+  try{ await loadXLSX(); }catch(err){ await showAlert({title:'Could not load Excel library',message:'Check your internet connection and try again.',tone:'error'}); e.target.value=''; return; }
   const reader=new FileReader();
-  reader.onload=ev=>{
+  reader.onload=async ev=>{
     try{
       const wb=XLSX.read(ev.target.result,{type:'array',cellDates:true});
       const sheetNames=wb.SheetNames.filter(n=>{
@@ -2173,7 +2577,7 @@ document.getElementById('importFile').onchange=async e=>{
         const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
         return rows.length>0;
       });
-      if(!sheetNames.length){alert('The workbook appears to be empty.');e.target.value='';return;}
+      if(!sheetNames.length){await showAlert({title:'Empty workbook',message:'The workbook appears to be empty.',tone:'warn'});e.target.value='';return;}
 
       // Merge into the existing dashboard rather than replacing it:
       // - a sheet whose name matches an existing model appends only its
@@ -2222,7 +2626,7 @@ document.getElementById('importFile').onchange=async e=>{
         }
       });
 
-      if(!modelsAdded && !modelsUpdated){alert('No new models or tasks found to import — everything in the workbook already exists.');e.target.value='';return;}
+      if(!modelsAdded && !modelsUpdated){await showAlert({title:'Nothing to import',message:'No new models or tasks found — everything in the workbook already exists.',tone:'warn'});e.target.value='';return;}
 
       refreshModelsList();
       if(!activeTab && models.length) activeTab=models[0];
@@ -2233,7 +2637,7 @@ document.getElementById('importFile').onchange=async e=>{
       if(tasksAdded) parts.push(`${tasksAdded} task${tasksAdded===1?'':'s'} added`);
       if(tasksSkipped) parts.push(`${tasksSkipped} duplicate${tasksSkipped===1?'':'s'} skipped`);
       toast('↑',`Imported: ${parts.join(', ')}`);
-    }catch(err){alert('Could not parse Excel file. Make sure it\'s a valid .xlsx or .xls workbook.');}
+    }catch(err){await showAlert({title:'Could not read file',message:"Make sure it's a valid .xlsx or .xls workbook.",tone:'error'});}
   };
   reader.readAsArrayBuffer(file);
   e.target.value='';
@@ -2258,8 +2662,8 @@ function loadXLSX(){
 
 // ── EXCEL EXPORT (current model's tasks) ──────────────────────────────────────
 document.getElementById('exportExcelBtn').onclick=async()=>{
-  if(activeTab==='Compare Models'){alert('Switch to a model tab before exporting.');return;}
-  try{ await loadXLSX(); }catch(e){ alert('Could not load the Excel library. Check your connection and try again.'); return; }
+  if(activeTab==='Compare Models'){await showAlert({title:'Select a model first',message:'Switch to a model tab before exporting.',tone:'warn'});return;}
+  try{ await loadXLSX(); }catch(e){ await showAlert({title:'Could not load Excel library',message:'Check your internet connection and try again.',tone:'error'}); return; }
   const tasks=state[activeTab];
   const prioMap={high:'High',med:'Med',low:'Low'};
   const rows=[['Task Name','Priority','Status','Notes','Deadline']];
@@ -2302,15 +2706,15 @@ function normDate(val){
 }
 document.getElementById('importExcelFile').onchange=async e=>{
   const file=e.target.files[0];if(!file)return;
-  if(activeTab==='Compare Models'){alert('Switch to a model tab before importing.');e.target.value='';return;}
-  try{ await loadXLSX(); }catch(err){ alert('Could not load the Excel library. Check your connection and try again.'); e.target.value=''; return; }
+  if(activeTab==='Compare Models'){await showAlert({title:'Select a model first',message:'Switch to a model tab before importing.',tone:'warn'});e.target.value='';return;}
+  try{ await loadXLSX(); }catch(err){ await showAlert({title:'Could not load Excel library',message:'Check your internet connection and try again.',tone:'error'}); e.target.value=''; return; }
   const reader=new FileReader();
-  reader.onload=ev=>{
+  reader.onload=async ev=>{
     try{
       const wb=XLSX.read(ev.target.result,{type:'array',cellDates:true});
       const ws=wb.Sheets[wb.SheetNames[0]];
       const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
-      if(!rows.length){alert('The file appears to be empty.');e.target.value='';return;}
+      if(!rows.length){await showAlert({title:'Empty file',message:'The file appears to be empty.',tone:'warn'});e.target.value='';return;}
       let startIdx=0;
       const firstRow=rows[0].map(c=>String(c).trim().toLowerCase());
       if(firstRow[0]&&(firstRow[0].includes('task')||firstRow[0].includes('name'))) startIdx=1;
@@ -2336,7 +2740,7 @@ document.getElementById('importExcelFile').onchange=async e=>{
       }
       renumber(tasks);save();renderAll();
       toast('📥',`Imported ${added} task${added===1?'':'s'}${skipped?`, skipped ${skipped} duplicate${skipped===1?'':'s'}`:''}`);
-    }catch(err){alert('Could not parse Excel file. Make sure it\'s a valid .xlsx, .xls, or .csv file.');}
+    }catch(err){await showAlert({title:'Could not read file',message:"Make sure it's a valid .xlsx, .xls, or .csv file.",tone:'error'});}
   };
   reader.readAsArrayBuffer(file);
   e.target.value='';
@@ -2365,9 +2769,14 @@ document.getElementById('searchBox').oninput=e=>{searchQuery=e.target.value;rend
 // ── ADD BUTTONS ───────────────────────────────────────────────────────────────
 document.getElementById('addTaskBtn').onclick=()=>{
   const inp=document.getElementById('newTaskInput');
-  addTask(activeTab,inp.value);inp.value='';inp.focus();
+  const posInp=document.getElementById('newTaskPosition');
+  addTask(activeTab,inp.value,posInp.value);
+  inp.value='';posInp.value='';inp.focus();
 };
 document.getElementById('newTaskInput').addEventListener('keydown',e=>{
+  if(e.key==='Enter'){e.preventDefault();document.getElementById('addTaskBtn').click();}
+});
+document.getElementById('newTaskPosition').addEventListener('keydown',e=>{
   if(e.key==='Enter'){e.preventDefault();document.getElementById('addTaskBtn').click();}
 });
 document.getElementById('addModelBtn').onclick=()=>{
@@ -2382,6 +2791,9 @@ document.getElementById('newModelInput').addEventListener('keydown',e=>{
 document.getElementById('newModelDeadline').addEventListener('input',e=>{
   e.target.classList.toggle('has-value',!!e.target.value);
 });
+document.getElementById('archiveModelBtn').onclick=()=>{
+  if(activeTab==='Compare Models')return;archiveModel(activeTab);
+};
 document.getElementById('deleteModelBtn').onclick=()=>{
   if(activeTab==='Compare Models')return;deleteModel(activeTab);
 };
@@ -2418,6 +2830,100 @@ document.addEventListener('keydown',e=>{
   }
 });
 
+// ── THEMED CONFIRM / ALERT (replaces native confirm()/alert()) ────────────────
+// showConfirm({title, message, confirmText, cancelText, danger, icon}) -> Promise<boolean>
+// showAlert({title, message, icon, tone}) -> Promise<void>
+// showConfirm/showAlert share one modal. If called again while already open,
+// queue the request so the previous promise still resolves correctly instead
+// of being silently orphaned (which would leak the old keydown listener too).
+let _confirmModalBusy=false;
+const _confirmModalQueue=[];
+function _runConfirmModalQueue(){
+  if(_confirmModalBusy||!_confirmModalQueue.length) return;
+  _confirmModalBusy=true;
+  const job=_confirmModalQueue.shift();
+  job(()=>{ _confirmModalBusy=false; _runConfirmModalQueue(); });
+}
+function showConfirm(opts){
+  return new Promise(resolveOuter=>{
+    _confirmModalQueue.push(done=>{
+      const overlay=document.getElementById('confirmModal');
+      const iconEl=document.getElementById('confirmIcon');
+      const titleEl=document.getElementById('confirmTitle');
+      const msgEl=document.getElementById('confirmMessage');
+      const okBtn=document.getElementById('confirmOkBtn');
+      const cancelBtn=document.getElementById('confirmCancelBtn');
+      const actionsEl=document.getElementById('confirmActions');
+
+      titleEl.textContent=opts.title||'Are you sure?';
+      msgEl.textContent=opts.message||'';
+      iconEl.textContent=opts.icon||(opts.danger?'⚠':'?');
+      iconEl.className='confirm-icon'+(opts.danger?' danger':' warn');
+      okBtn.textContent=opts.confirmText||'Confirm';
+      cancelBtn.textContent=opts.cancelText||'Cancel';
+      okBtn.className='modal-btn '+(opts.danger?'danger':'primary');
+      actionsEl.style.display='flex';
+      cancelBtn.style.display='';
+
+      function cleanup(result){
+        overlay.classList.remove('open');
+        okBtn.onclick=null;cancelBtn.onclick=null;
+        overlay.onclick=null;
+        document.removeEventListener('keydown',escHandler);
+        resolveOuter(result);
+        done();
+      }
+      function escHandler(e){ if(e.key==='Escape') cleanup(false); }
+
+      okBtn.onclick=()=>cleanup(true);
+      cancelBtn.onclick=()=>cleanup(false);
+      overlay.onclick=e=>{ if(e.target===overlay) cleanup(false); };
+      document.addEventListener('keydown',escHandler);
+      overlay.classList.add('open');
+      okBtn.focus();
+    });
+    _runConfirmModalQueue();
+  });
+}
+function showAlert(opts){
+  return new Promise(resolveOuter=>{
+    _confirmModalQueue.push(done=>{
+      const overlay=document.getElementById('confirmModal');
+      const iconEl=document.getElementById('confirmIcon');
+      const titleEl=document.getElementById('confirmTitle');
+      const msgEl=document.getElementById('confirmMessage');
+      const okBtn=document.getElementById('confirmOkBtn');
+      const cancelBtn=document.getElementById('confirmCancelBtn');
+      const actionsEl=document.getElementById('confirmActions');
+
+      titleEl.textContent=opts.title||'Notice';
+      msgEl.textContent=opts.message||'';
+      iconEl.textContent=opts.icon||(opts.tone==='error'?'⚠':'i');
+      iconEl.className='confirm-icon'+(opts.tone==='error'?' danger':opts.tone==='warn'?' warn':'');
+      okBtn.textContent='OK';
+      okBtn.className='modal-btn primary';
+      cancelBtn.style.display='none';
+
+      function cleanup(){
+        overlay.classList.remove('open');
+        okBtn.onclick=null;overlay.onclick=null;
+        document.removeEventListener('keydown',escHandler);
+        cancelBtn.style.display='';
+        resolveOuter();
+        done();
+      }
+      function escHandler(e){ if(e.key==='Escape') cleanup(); }
+
+      okBtn.onclick=cleanup;
+      overlay.onclick=e=>{ if(e.target===overlay) cleanup(); };
+      document.addEventListener('keydown',escHandler);
+      overlay.classList.add('open');
+      okBtn.focus();
+    });
+    _runConfirmModalQueue();
+  });
+}
+
 // ── TOAST ─────────────────────────────────────────────────────────────────────
 function toast(icon,msg,showUndo){
   const t=document.getElementById('toast');
@@ -2432,7 +2938,8 @@ function toast(icon,msg,showUndo){
 
 // ── RENDER ALL ────────────────────────────────────────────────────────────────
 function renderAll(){
-  renderKPIs();renderModelCards();renderTabs();renderTaskList();updateBulkBar();
+  renderKPIs();renderModelCards();renderTabs();renderTaskList();updateBulkBar();updateArchiveBadge();
+  if(archiveViewActive) renderArchiveView();
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
@@ -2484,12 +2991,42 @@ function refreshStickyBarOrigin(){
 window.addEventListener('scroll',updateStickyBarPin,{passive:true});
 window.addEventListener('resize',refreshStickyBarOrigin);
 
+// ── BACK TO TOP ───────────────────────────────────────────────────────────────
+const backToTopBtn=document.getElementById('backToTopBtn');
+function updateBackToTopVisibility(){
+  if(window.scrollY>400) backToTopBtn.classList.add('show');
+  else backToTopBtn.classList.remove('show');
+}
+window.addEventListener('scroll',updateBackToTopVisibility,{passive:true});
+backToTopBtn.onclick=()=>{window.scrollTo({top:0,behavior:'smooth'});};
+updateBackToTopVisibility();
+
 // ── BOOTSTRAP ─────────────────────────────────────────────────────────────────
 // Show the dashboard with seed data right away rather than waiting on
 // Firebase. Once Firebase resolves, handleAuthState swaps in real data
 // for a signed-in user, or re-enters preview mode if nobody is signed in.
 enterPreviewMode();
-auth.onAuthStateChanged(handleAuthState);
+
+if(window.__firebaseLoadFailed || typeof firebase==='undefined'){
+  // The Firebase SDK itself failed to load (blocked script, offline, etc).
+  // Dashboard still works locally — just let the person know sign-in/sync is unavailable.
+  setTimeout(()=>{
+    toast('⚠','Sign-in unavailable right now — working in local preview mode',false);
+    const loginOpenBtn=document.getElementById('loginOpenBtn');
+    if(loginOpenBtn) loginOpenBtn.title='Sign-in service unavailable — check your connection';
+  },600);
+} else {
+  let authResolved=false;
+  auth.onAuthStateChanged(user=>{ authResolved=true; handleAuthState(user); });
+  // If Firebase loaded but auth never calls back within a few seconds
+  // (e.g. flaky network mid-handshake), let the person know rather than
+  // leaving them to wonder why nothing happened.
+  setTimeout(()=>{
+    if(!authResolved){
+      toast('⚠','Having trouble connecting — your changes are saved locally for now',false);
+    }
+  },8000);
+}
 
 const footerYearEl=document.getElementById('footerYear');
 if(footerYearEl) footerYearEl.textContent=new Date().getFullYear();
