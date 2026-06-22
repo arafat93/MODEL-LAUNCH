@@ -437,6 +437,7 @@ footer {
   align-items: center; min-height: 64px; transition: background 0.2s;
 }
 .task-row:last-child { border-bottom: none; }
+.task-row > div:nth-child(5) { display: flex; justify-content: center; }
 
 .empty-state {
   display: none; flex-direction: column; align-items: center; text-align: center;
@@ -1255,9 +1256,9 @@ kbd {
     <div><input type="checkbox" id="selectAllChk" class="task-checkbox" title="Select all"></div>
     <div class="th-sort" data-sort="name" title="Sort by task name">Task Description <span class="sort-icon"><svg class="up" width="8" height="6" viewBox="0 0 8 6"><path d="M4 0L8 6H0Z" fill="currentColor"/></svg><svg class="dn" width="8" height="6" viewBox="0 0 8 6"><path d="M4 6L0 0H8Z" fill="currentColor"/></svg></span></div>
     <div class="th-sort" data-sort="priority" title="Sort by priority">Priority <span class="sort-icon"><svg class="up" width="8" height="6" viewBox="0 0 8 6"><path d="M4 0L8 6H0Z" fill="currentColor"/></svg><svg class="dn" width="8" height="6" viewBox="0 0 8 6"><path d="M4 6L0 0H8Z" fill="currentColor"/></svg></span></div>
-    <div>Status</div>
-    <div style="text-align:center;">Notes</div>
-    <div style="text-align:right;">Actions</div>
+    <div style="justify-content:center;">Status</div>
+    <div style="justify-content:center;">Notes</div>
+    <div style="justify-content:center;">Actions</div>
   </div>
   <div id="taskRows"></div>
   <div class="empty-state" id="taskEmptyState">
@@ -1466,7 +1467,10 @@ function showLoading(){ document.getElementById('authLoading').classList.remove(
 function hideLoading(){ document.getElementById('authLoading').classList.add('hidden'); }
 
 document.getElementById('loginOpenBtn').onclick=showAuthGate;
-document.getElementById('undoBtn').onclick=()=>undo();
+document.getElementById('undoBtn').onclick=()=>{
+  document.getElementById('userBadge').classList.remove('menu-open');
+  undo();
+};
 document.getElementById('authCloseBtn').onclick=hideAuthGate;
 document.getElementById('authGate').addEventListener('click',e=>{
   if(e.target.id==='authGate') hideAuthGate();
@@ -2104,7 +2108,10 @@ function setArchiveView(active){
   if(active) renderArchiveView();
 }
 
-document.getElementById('archiveViewBtn').onclick=()=>setArchiveView(!archiveViewActive);
+document.getElementById('archiveViewBtn').onclick=()=>{
+  document.getElementById('userBadge').classList.remove('menu-open');
+  setArchiveView(!archiveViewActive);
+};
 document.getElementById('liveBadge').onclick=()=>setArchiveView(false);
 
 function renderArchiveView(){
@@ -2298,7 +2305,12 @@ function renderTaskList(){
       let va,vb;
       if(sortCol==='sn'){ va=a.task.sn||0; vb=b.task.sn||0; }
       else if(sortCol==='name'){ va=a.task.name.toLowerCase(); vb=b.task.name.toLowerCase(); }
-      else if(sortCol==='priority'){ va=prioOrder[a.task.priority||'med']; vb=prioOrder[b.task.priority||'med']; }
+      else if(sortCol==='priority'){
+        // Use the frozen snapshot (captured on header click) so editing a
+        // task's priority afterward doesn't reshuffle the list mid-edit.
+        va=prioritySortSnapshot&&prioritySortSnapshot.has(a.task)?prioritySortSnapshot.get(a.task):prioOrder[a.task.priority||'med'];
+        vb=prioritySortSnapshot&&prioritySortSnapshot.has(b.task)?prioritySortSnapshot.get(b.task):prioOrder[b.task.priority||'med'];
+      }
       else if(sortCol==='status'){ va=a.task.done?1:0; vb=b.task.done?1:0; }
       if(va<vb) return sortDir==='asc'?-1:1;
       if(va>vb) return sortDir==='asc'?1:-1;
@@ -2548,6 +2560,11 @@ const pendingDoneTimers=new Map();
 const pendingRevertTimers=new Map();
 let sortCol=null; // 'name'|'priority'|'status'
 let sortDir='asc'; // 'asc'|'desc'
+// Frozen priority order captured at the moment the Priority column is sorted.
+// Without this, changing a task's priority would immediately re-rank it and
+// jerk the row to a new position mid-edit. The snapshot keeps row order
+// stable until the user explicitly re-clicks the Priority header.
+let prioritySortSnapshot=null; // Map<task, rank> | null
 
 function toggleTask(model,idx){
   const task=state[model][idx];
@@ -3340,7 +3357,10 @@ async function freshStart(){
   toast('🔄','Dashboard cleared — ready for new models & tasks',false);
 }
 
-document.getElementById('freshStartBtn').onclick = freshStart;
+document.getElementById('freshStartBtn').onclick = ()=>{
+  document.getElementById('userBadge').classList.remove('menu-open');
+  freshStart();
+};
 
 // -- SORT HEADERS
 document.querySelectorAll('.th-sort').forEach(th=>{
@@ -3348,6 +3368,17 @@ document.querySelectorAll('.th-sort').forEach(th=>{
     const col=th.dataset.sort;
     if(sortCol===col){ sortDir=sortDir==='asc'?'desc':'asc'; }
     else{ sortCol=col; sortDir='asc'; }
+    if(col==='priority'){
+      // (Re)capture the current priority ranking so subsequent priority
+      // edits don't reshuffle the list until the user sorts again.
+      const prioOrder={high:0,med:1,low:2};
+      prioritySortSnapshot=new Map();
+      Object.values(state).flat().forEach(t=>{
+        prioritySortSnapshot.set(t, prioOrder[t.priority||'med']);
+      });
+    } else {
+      prioritySortSnapshot=null;
+    }
     renderTaskList();
   });
 });
