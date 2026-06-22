@@ -1068,9 +1068,46 @@ kbd {
   .hdr-btn span { display: none; }
   .wrap { padding: 0 16px 40px; }
 }
+
+/* ── COPY PROTECTION: disable text selection/drag ── */
+html, body, * {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+input, textarea, [contenteditable="true"] {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+}
+img { -webkit-user-drag: none; }
 </style>
 </head>
 <body>
+<script>
+// ── COPY PROTECTION (deters casual copying — not a real security measure) ──
+document.addEventListener('contextmenu', e => e.preventDefault());
+document.addEventListener('dragstart', e => e.preventDefault());
+document.addEventListener('keydown', e => {
+  const k = e.key.toUpperCase();
+  // View source
+  if (e.ctrlKey && k === 'U') { e.preventDefault(); return false; }
+  // DevTools
+  if (k === 'F12') { e.preventDefault(); return false; }
+  if (e.ctrlKey && e.shiftKey && (k === 'I' || k === 'J' || k === 'C')) { e.preventDefault(); return false; }
+  // Save page / open file
+  if (e.ctrlKey && (k === 'S' || k === 'O')) { e.preventDefault(); return false; }
+  // Select all / copy / cut (allow inside editable fields)
+  const tag = (e.target.tagName || '').toUpperCase();
+  const isEditable = tag === 'INPUT' || tag === 'TEXTAREA' || e.target.isContentEditable;
+  if (!isEditable && e.ctrlKey && (k === 'A' || k === 'C' || k === 'X' || k === 'P')) {
+    e.preventDefault(); return false;
+  }
+});
+</script>
 <!-- LOADING OVERLAY -->
 <div id="authLoading" class="hidden">
   <div class="auth-spinner"></div>
