@@ -300,6 +300,26 @@ footer {
 .model-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
 .model-name { font-size: 18px; font-weight: 600; color: var(--text); letter-spacing: -0.3px; }
 .model-deadline { font-size: 11px; color: var(--text-muted); margin-top: 6px; display: flex; align-items: center; gap: 6px; font-weight: 400; }
+.model-deadline-btn {
+  background: none; border: 1px solid transparent; border-radius: 8px;
+  padding: 3px 8px 3px 0; cursor: pointer; font-family: inherit;
+  font-size: 11px; font-weight: 400; color: var(--text-muted);
+  display: inline-flex; align-items: center; gap: 6px;
+  transition: background 0.18s, border-color 0.18s, color 0.18s;
+  margin-top: 6px;
+}
+.model-deadline-btn:hover {
+  background: rgba(255,255,255,0.06); border-color: var(--border);
+  color: var(--text-primary); padding-left: 8px;
+}
+.model-deadline-btn .model-deadline-edit-hint {
+  font-size: 11px; opacity: 0; transition: opacity 0.18s; margin-left: 2px;
+}
+.model-deadline-btn:hover .model-deadline-edit-hint { opacity: 0.6; }
+.model-deadline-btn.model-deadline-unset { font-style: italic; }
+.model-deadline-btn.overdue { color: var(--red); }
+.model-deadline-btn.warning { color: var(--yellow); }
+.model-deadline-btn.ok { color: var(--green); }
 .deadline-overdue { color: var(--red) !important; font-weight: 500; }
 .deadline-soon { color: var(--yellow) !important; font-weight: 500; }
 .deadline-ok { color: var(--green) !important; }
@@ -1429,9 +1449,6 @@ document.addEventListener('keydown', e => {
     <div class="tab-bar" id="tabBar"></div>
   </div>
   <div style="margin-left:auto;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-    <button class="hdr-btn hdr-deadline-btn" id="setDeadlineBtn" title="Set deadline for current model"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> <span id="setDeadlineBtnLabel">Set Deadline</span>
-      <span class="hdr-deadline-clear" id="clearModelDeadlineBtn" title="Clear deadline">✕</span>
-    </button>
     <div class="export-dropdown" id="exportModelDropdown">
       <button class="hdr-btn" id="exportModelToggleBtn" title="Export current model's checklist">📤 <span>Export</span> <span class="hdr-btn-caret">▾</span></button>
       <div class="export-menu" id="exportModelMenu">
@@ -2456,8 +2473,9 @@ function renderModelCards(){
     card.draggable=true;
     card.dataset.model=m;
     const dl=deadlineLabel(m);
-    const dlHtml=dl?`<div class="model-deadline ${dl.cls}">${CAL_ICON} ${dl.text}</div>`
-      :`<div class="model-deadline">${CAL_ICON} No deadline set</div>`;
+    const dlHtml=dl
+      ?`<div class="model-deadline model-deadline-btn ${dl.cls}" style="position:relative;display:inline-flex;align-items:center;gap:6px;">${CAL_ICON} ${dl.text} <span class="model-deadline-edit-hint">✎</span><input type="date" class="model-deadline-native-input task-deadline-native" value="${deadlines[m]||''}" tabindex="-1" style="position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;-webkit-appearance:none;appearance:none;border:none;background:transparent;margin:0;padding:0;"></div>`
+      :`<div class="model-deadline model-deadline-btn model-deadline-unset" style="position:relative;display:inline-flex;align-items:center;gap:6px;">${CAL_ICON} Set deadline <span class="model-deadline-edit-hint">✎</span><input type="date" class="model-deadline-native-input task-deadline-native" value="" tabindex="-1" style="position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;-webkit-appearance:none;appearance:none;border:none;background:transparent;margin:0;padding:0;"></div>`;
 
     const isRenaming=renamingModel===m;
     const nameHtml=isRenaming
@@ -2488,6 +2506,20 @@ function renderModelCards(){
         <div class="stat-item"><div class="stat-num pend-val">${s.pending}</div><div class="stat-lbl">PENDING</div></div>
         <div class="stat-item"><div class="stat-num" style="color:var(--text-muted)">${s.total}</div><div class="stat-lbl">TOTAL</div></div>
       </div>`;
+
+    // Deadline: native date input overlay — no modal, opens picker directly on click
+    const dlNativeInput=card.querySelector('.model-deadline-native-input');
+    if(dlNativeInput){
+      dlNativeInput.addEventListener('click',e=>e.stopPropagation());
+      dlNativeInput.addEventListener('change',e=>{
+        e.stopPropagation();
+        const val=e.target.value;
+        if(val) deadlines[m]=val;
+        else delete deadlines[m];
+        save();renderAll();
+        toast(CAL_ICON,`Model deadline ${val?'set':'cleared'}`);
+      });
+    }
 
     // Show/hide rename pencil on hover
     card.addEventListener('mouseenter',()=>{
@@ -2614,8 +2646,8 @@ function renderArchiveView(){
     const card=document.createElement('div');
     card.className='model-card archived theme-'+(idx%4);
     const dl=deadlineLabel(m);
-    const dlHtml=dl?`<div class="model-deadline ${dl.cls}">${CAL_ICON} ${dl.text}</div>`
-      :`<div class="model-deadline">${CAL_ICON} No deadline set</div>`;
+    const dlHtml=dl?`<button class="model-deadline model-deadline-btn ${dl.cls}" onclick="event.stopPropagation()">${CAL_ICON} ${dl.text}</button>`
+      :`<div class="model-deadline">${CAL_ICON} No deadline</div>`;
     card.innerHTML=`
       <div class="model-header">
         <div>
@@ -2784,7 +2816,6 @@ function renderTaskList(){
   const addBar=document.getElementById('addTaskBar');
   const delBtn=document.getElementById('deleteModelBtn');
   const archBtn=document.getElementById('archiveModelBtn');
-  const setDlBtn=document.getElementById('setDeadlineBtn');
   const exportBtn=document.getElementById('exportModelDropdown');
   const importLbl=document.getElementById('importExcelLabel');
   const searchBoxEl=document.getElementById('searchBox');
@@ -2792,13 +2823,13 @@ function renderTaskList(){
 
   if(activeTab==='Compare Models'){
     table.style.display='none';addBar.style.display='none';
-    delBtn.style.display='none';archBtn.style.display='none';setDlBtn.style.display='none';
+    delBtn.style.display='none';archBtn.style.display='none';
     exportBtn.style.display='none';importLbl.style.display='none';
     searchBoxEl.style.display='none';filterBarEl.style.display='none';
     compare.style.display='block';renderCompare();return;
   }
   table.style.display='';addBar.style.display='';
-  delBtn.style.display='';archBtn.style.display='';setDlBtn.style.display='';
+  delBtn.style.display='';archBtn.style.display='';
   exportBtn.style.display='';importLbl.style.display='';
   searchBoxEl.style.display='';filterBarEl.style.display='';
   compare.style.display='none';
@@ -2806,7 +2837,7 @@ function renderTaskList(){
   // No models — hide task section entirely
   if(!activeTab || !state[activeTab]){
     table.style.display='none';addBar.style.display='none';
-    delBtn.style.display='none';archBtn.style.display='none';setDlBtn.style.display='none';
+    delBtn.style.display='none';archBtn.style.display='none';
     exportBtn.style.display='none';importLbl.style.display='none';
     searchBoxEl.style.display='none';filterBarEl.style.display='none';
     ['all','done','pending','critical','high','med','low'].forEach(k=>{
@@ -2815,7 +2846,6 @@ function renderTaskList(){
     return;
   }
   document.getElementById('newTaskInput').placeholder=`Add a new task to ${activeTab}…`;
-  syncModelDeadlineBtn();
 
   const tbody=document.getElementById('taskRows');
   tbody.innerHTML='';
@@ -3366,45 +3396,26 @@ document.getElementById('notesModal').onclick=e=>{if(e.target===document.getElem
 // Real, fully-functional <input type="date"> stretched invisibly over the
 // header button — clicking the button opens the native picker directly on
 // the first click (no modal hop), matching the per-task deadline icon.
-function syncModelDeadlineBtn(){
-  const btn=document.getElementById('setDeadlineBtn');
-  const labelEl=document.getElementById('setDeadlineBtnLabel');
-  if(!btn||!activeTab||activeTab==='Compare Models') return;
-  const dl=deadlineLabel(activeTab);
-  btn.classList.remove('has-date','is-overdue');
-  if(dl){
-    btn.classList.add(dl.cls==='deadline-overdue'?'is-overdue':'has-date');
-    labelEl.textContent=dl.text;
-  } else {
-    labelEl.textContent='Set Deadline';
-  }
-}
-function openModelDeadlineModal(){
-  if(!activeTab||activeTab==='Compare Models') return;
-  document.getElementById('modelDeadlineModelName').textContent=activeTab;
-  const picker=document.getElementById('modelDeadlinePickerModal');
-  picker.value=deadlines[activeTab]||'';
-  document.getElementById('modelDeadlineModal').classList.add('open');
-  setTimeout(()=>{ try{ if(picker.showPicker) picker.showPicker(); else picker.focus(); }catch(err){ picker.focus(); } },320);
-}
-document.getElementById('setDeadlineBtn').onclick=e=>{
-  e.preventDefault();e.stopPropagation();
-  openModelDeadlineModal();
-};
+// ── MODEL DEADLINE MODAL (opened from model cards) ───────────────────────────
+let _modelDeadlineTarget = null; // set by card click in renderModelCards
+
 document.getElementById('modelDeadlineSaveBtn').onclick=()=>{
-  const model=activeTab;
+  const model=_modelDeadlineTarget;
+  if(!model) return;
   const val=document.getElementById('modelDeadlinePickerModal').value;
   if(val) deadlines[model]=val; else delete deadlines[model];
-  save();renderModelCards();syncModelDeadlineBtn();
+  save(); renderModelCards();
   document.getElementById('modelDeadlineModal').classList.remove('open');
-  toast(CAL_ICON,`Deadline ${val?'set':'cleared'}`);
+  toast(CAL_ICON,`Deadline ${val?'set':'cleared'} for ${model}`);
 };
 document.getElementById('modelDeadlineClearBtn').onclick=()=>{
-  delete deadlines[activeTab];
+  const model=_modelDeadlineTarget;
+  if(!model) return;
+  delete deadlines[model];
   document.getElementById('modelDeadlinePickerModal').value='';
-  save();renderModelCards();syncModelDeadlineBtn();
+  save(); renderModelCards();
   document.getElementById('modelDeadlineModal').classList.remove('open');
-  toast(CAL_ICON,'Deadline cleared');
+  toast(CAL_ICON,`Deadline cleared for ${model}`);
 };
 document.getElementById('modelDeadlineCancelBtn').onclick=()=>{
   document.getElementById('modelDeadlineModal').classList.remove('open');
@@ -3412,12 +3423,6 @@ document.getElementById('modelDeadlineCancelBtn').onclick=()=>{
 document.getElementById('modelDeadlineModal').onclick=e=>{
   if(e.target===document.getElementById('modelDeadlineModal'))
     document.getElementById('modelDeadlineModal').classList.remove('open');
-};
-document.getElementById('clearModelDeadlineBtn').onclick=e=>{
-  e.preventDefault();e.stopPropagation();
-  delete deadlines[activeTab];
-  save();renderModelCards();syncModelDeadlineBtn();
-  toast(CAL_ICON,'Deadline cleared');
 };
 
 let taskDeadlineCtx={model:null,idx:null};
